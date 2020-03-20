@@ -14,6 +14,8 @@ void entry_point(bootinfo_t *binfo)
     draw_square(200, 200, 200, 200, blue);
     draw_square(300, 300, 200, 200, black);
     draw_square(400, 400, 200, 200, white);
+
+    printstr(0, 0, black, white, "aho");
     //uint32_t x_axis = binfo->vinfo.x_axis;
     //uint32_t y_axis = binfo->vinfo.y_axis;
     //uint32_t ppsl = binfo->vinfo.ppsl;
@@ -27,6 +29,6 @@ void entry_point(bootinfo_t *binfo)
     //}
 
     while (1) {
-        asm("hlt");
+        asm volatile("hlt");
     }
 }

@@ -15,5 +15,6 @@ typedef struct pix_format_t {
 
 void init_graphics(bootinfo_t *binfo);
 void draw_square(uint32_t ul_x, uint32_t ul_y, uint32_t x_len, uint32_t y_len, pix_format_t color);
+void printstr(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bcolor, char *s);
 
 #endif
