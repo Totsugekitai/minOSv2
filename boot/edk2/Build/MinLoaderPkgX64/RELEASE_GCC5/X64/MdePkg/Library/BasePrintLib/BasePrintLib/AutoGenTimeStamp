@@ -1,0 +1,5 @@
+/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BasePrintLib/PrintLibInternal.c
+/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BasePrintLib/PrintLibInternal.h
+/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BasePrintLib/PrintLib.c
+/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BasePrintLib/BasePrintLib.inf
+/home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/BasePrintLib/BasePrintLib/DEBUG/AutoGen.h

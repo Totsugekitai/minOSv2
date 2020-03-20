@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_RAW -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/9FB1A1F3-3B71-4324-B39A-745CBB015FFFIp4Dxe/Ip4DxeOffset.raw /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/9FB1A1F3-3B71-4324-B39A-745CBB015FFFIp4Dxe/Ip4Dxe.offset

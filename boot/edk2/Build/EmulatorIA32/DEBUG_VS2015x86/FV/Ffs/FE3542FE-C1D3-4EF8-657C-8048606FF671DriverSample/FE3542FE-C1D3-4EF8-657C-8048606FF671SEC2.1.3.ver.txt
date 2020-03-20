@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_VERSION -n 1.0 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/FE3542FE-C1D3-4EF8-657C-8048606FF671DriverSample/FE3542FE-C1D3-4EF8-657C-8048606FF671SEC2.1.3.ver

@@ -1,0 +1,11 @@
+PcdTokenNumber: 
+('PcdConOutColumn', 'gEfiMdeModulePkgTokenSpaceGuid') : 7
+('PcdConOutRow', 'gEfiMdeModulePkgTokenSpaceGuid') : 8
+('PcdFlashNvStorageFtwSpareBase64', 'gEfiMdeModulePkgTokenSpaceGuid') : 1
+('PcdFlashNvStorageFtwWorkingBase64', 'gEfiMdeModulePkgTokenSpaceGuid') : 2
+('PcdFlashNvStorageVariableBase64', 'gEfiMdeModulePkgTokenSpaceGuid') : 3
+('PcdNvStoreDefaultValueBuffer', 'gEfiMdeModulePkgTokenSpaceGuid') : 4
+('PcdSetNvStoreDefaultId', 'gEfiMdeModulePkgTokenSpaceGuid') : 5
+('PcdTestKeyUsed', 'gEfiMdeModulePkgTokenSpaceGuid') : 9
+('PcdVpdBaseAddress64', 'gEfiMdeModulePkgTokenSpaceGuid') : 6
+('PcdPlatformBootTimeOut', 'gEfiMdePkgTokenSpaceGuid') : 10

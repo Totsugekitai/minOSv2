@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_DXE_DEPEX -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/6D33944A-EC75-4855-A54D-809C75241F6CBdsDxe/6D33944A-EC75-4855-A54D-809C75241F6CSEC1.1.dpx /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Universal/BdsDxe/BdsDxe/OUTPUT/BdsDxe.depex

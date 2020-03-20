@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_RAW -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/FE3542FE-C1D3-4EF8-657C-8048606FF671DriverSample/DriverSampleOffset.raw /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/FE3542FE-C1D3-4EF8-657C-8048606FF671DriverSample/DriverSample.offset

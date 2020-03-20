@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/9B3ADA4F-AE56-4c24-8DEA-F03B7558AE50PcdPeim/9B3ADA4F-AE56-4c24-8DEA-F03B7558AE50SEC2.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Universal/PCD/Pei/Pcd/OUTPUT/PcdPeim.efi

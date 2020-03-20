@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/2D6F6BCC-9681-8E42-8579-B57DCD0060F0AutoScanPei/2D6F6BCC-9681-8E42-8579-B57DCD0060F0SEC2.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/AutoScanPei/AutoScanPei/OUTPUT/AutoScanPei.efi

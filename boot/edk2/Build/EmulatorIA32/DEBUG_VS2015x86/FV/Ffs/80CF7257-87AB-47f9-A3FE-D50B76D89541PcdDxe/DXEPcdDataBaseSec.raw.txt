@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_RAW -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/80CF7257-87AB-47f9-A3FE-D50B76D89541PcdDxe/DXEPcdDataBaseSec.raw /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Universal/PCD/Dxe/Pcd/OUTPUT/DXEPcdDataBase.raw

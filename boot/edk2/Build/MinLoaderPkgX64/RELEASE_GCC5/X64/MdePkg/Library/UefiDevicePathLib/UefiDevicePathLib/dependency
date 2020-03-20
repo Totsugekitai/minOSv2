@@ -1,0 +1,11 @@
+
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib/OUTPUT/DevicePathFromText.obj.deps
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib/OUTPUT/DevicePathToText.obj.deps
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib/OUTPUT/DevicePathUtilities.obj.deps
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib/OUTPUT/UefiDevicePathLib.obj.deps
+
+        

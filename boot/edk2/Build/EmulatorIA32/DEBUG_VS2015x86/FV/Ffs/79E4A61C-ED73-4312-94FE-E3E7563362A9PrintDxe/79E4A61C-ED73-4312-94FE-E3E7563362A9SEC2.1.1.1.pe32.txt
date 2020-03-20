@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/79E4A61C-ED73-4312-94FE-E3E7563362A9PrintDxe/79E4A61C-ED73-4312-94FE-E3E7563362A9SEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Universal/PrintDxe/PrintDxe/OUTPUT/PrintDxe.efi

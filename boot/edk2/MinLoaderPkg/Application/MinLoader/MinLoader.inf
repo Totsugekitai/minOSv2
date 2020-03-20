@@ -1,0 +1,21 @@
+[Defines]
+INF_VERSION             = 0x00010005
+BASE_NAME               = MinLoader
+FILE_GUID               = 0cceeb26-ac44-4f47-b722-a2ca525aca77
+MODULE_TYPE             = UEFI_APPLICATION
+VERSION_STRING          = 0.1
+ENTRY_POINT             = UefiMain
+
+[Sources]
+boot/MinLoader.h
+boot/elf.h
+boot/boot_types.h
+boot/MinLoader.c
+boot/kernel_jump.S
+
+[Packages]
+MdePkg/MdePkg.dec
+
+[LibraryClasses]
+UefiLib
+UefiApplicationEntryPoint

@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/C9FAF091-57F8-A64C-A07A-445B124F0D93FlashMapPei/C9FAF091-57F8-A64C-A07A-445B124F0D93SEC2.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/FlashMapPei/FlashMapPei/OUTPUT/FlashMapPei.efi

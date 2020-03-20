@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_VERSION -n 1.0 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/D93CE3D8-A7EB-4730-8C8E-CC466A9ECC3CReportStatusCodeRouterRuntimeDxe/D93CE3D8-A7EB-4730-8C8E-CC466A9ECC3CSEC2.1.3.ver

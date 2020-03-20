@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/2F62A818-4A72-CD40-90B9-FF00DAABEE7BEmuThunk/2F62A818-4A72-CD40-90B9-FF00DAABEE7BSEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/EmuThunkDxe/EmuThunk/OUTPUT/EmuThunk.efi

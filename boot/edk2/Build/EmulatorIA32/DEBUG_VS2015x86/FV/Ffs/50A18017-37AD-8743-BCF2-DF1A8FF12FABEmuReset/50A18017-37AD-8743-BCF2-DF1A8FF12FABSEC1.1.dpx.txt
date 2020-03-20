@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_DXE_DEPEX -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/50A18017-37AD-8743-BCF2-DF1A8FF12FABEmuReset/50A18017-37AD-8743-BCF2-DF1A8FF12FABSEC1.1.dpx /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/ResetRuntimeDxe/Reset/OUTPUT/EmuReset.depex

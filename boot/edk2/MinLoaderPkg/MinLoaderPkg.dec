@@ -1,0 +1,5 @@
+[Defines]
+DEC_SPECIFICATION       = 0x00010005
+PACKAGE_NAME            = MinLoaderPkg
+PACKAGE_GUID            = 0cceeb26-ac44-4f47-b722-a2ca525aca77
+PACKAGE_VERSION         = 0.1

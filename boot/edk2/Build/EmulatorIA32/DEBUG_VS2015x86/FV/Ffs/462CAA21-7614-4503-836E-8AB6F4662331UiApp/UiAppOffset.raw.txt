@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_RAW -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/462CAA21-7614-4503-836E-8AB6F4662331UiApp/UiAppOffset.raw /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/462CAA21-7614-4503-836E-8AB6F4662331UiApp/UiApp.offset

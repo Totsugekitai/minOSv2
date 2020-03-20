@@ -1,0 +1,9 @@
+
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MinLoaderPkg/Application/MinLoader/MinLoader/OUTPUT/boot/MinLoader.obj.deps
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MinLoaderPkg/Application/MinLoader/MinLoader/OUTPUT/boot/kernel_jump.obj.deps
+
+-include /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MinLoaderPkg/Application/MinLoader/MinLoader/OUTPUT/AutoGen.obj.deps
+
+        

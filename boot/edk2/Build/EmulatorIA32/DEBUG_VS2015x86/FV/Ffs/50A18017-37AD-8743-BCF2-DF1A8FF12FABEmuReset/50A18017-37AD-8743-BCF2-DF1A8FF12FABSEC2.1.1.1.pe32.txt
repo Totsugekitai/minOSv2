@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/50A18017-37AD-8743-BCF2-DF1A8FF12FABEmuReset/50A18017-37AD-8743-BCF2-DF1A8FF12FABSEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/ResetRuntimeDxe/Reset/OUTPUT/EmuReset.efi

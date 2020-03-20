@@ -1,0 +1,1 @@
+GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/F74D20EE-37E7-48FC-97F7-9B1047749C69LogoDxe/F74D20EE-37E7-48FC-97F7-9B1047749C69SEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Logo/LogoDxe/OUTPUT/LogoDxe.efi

@@ -1,0 +1,6 @@
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BaseLib/X64
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/BaseLib
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/BaseLib/BaseLib/DEBUG
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Include
+-I/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Include/X64
