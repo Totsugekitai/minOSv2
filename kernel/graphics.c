@@ -12,6 +12,8 @@ void init_graphics(bootinfo_t *binfo)
     // GPD MicroPC 用の画面補正
     if (vinfo_g.x_axis < vinfo_g.y_axis) {
         gpd = 1;
+    } else {
+        gpd = 0;
     }
 }
 
