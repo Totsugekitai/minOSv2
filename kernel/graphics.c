@@ -12,6 +12,21 @@ const pix_format_t red   = { 0x00, 0x00, 0xff, 0x00 };
 const pix_format_t green = { 0x00, 0xff, 0x00, 0x00 };
 const pix_format_t blue  = { 0xff, 0x00, 0x00, 0x00 };
 
+void init_graphics(bootinfo_t *binfo)
+{
+    vinfo_g = binfo->vinfo;
+
+    // GPD MicroPC 用の画面補正
+    if (vinfo_g.x_axis < vinfo_g.y_axis) {
+        gpd = 1;
+        uint32_t tmp = vinfo_g.x_axis;
+        vinfo_g.x_axis = vinfo_g.y_axis;
+        vinfo_g.y_axis = tmp;
+    } else {
+        gpd = 0;
+    }
+}
+
 static inline void draw_dot(uint32_t x, uint32_t y, pix_format_t color)
 {
     pix_format_t *fb = (pix_format_t *)vinfo_g.fb;
@@ -27,7 +42,7 @@ static inline void draw_dot(uint32_t x, uint32_t y, pix_format_t color)
     uint32_t x_c = x;
     uint32_t y_c = y;
     if (gpd) {
-        x_c = x_axis - y - 1;
+        x_c = y_axis - y - 1;
         y_c = x;
     }
     fb[x_c + y_c * ppsl] = color;
@@ -47,6 +62,13 @@ void draw_square(uint32_t ul_x, uint32_t ul_y, uint32_t x_len, uint32_t y_len, p
         for (j = 0; j < x_len; j++) {
             draw_dot(ul_x + j, ul_y + i, color);
         }
+    }
+}
+
+void paint_background(pix_format_t bgcolor)
+{
+    for (uint64_t i = 0; i < vinfo_g.fb_size; i++) {
+        ((pix_format_t *)(vinfo_g.fb))[i] = bgcolor;
     }
 }
 
@@ -149,19 +171,5 @@ void printstrnum(uint32_t ul_x, uint32_t ul_y, struct pix_format_t color, struct
     }
     printstr(ul_x, ul_y, color, bcolor, s);
     printnum(ul_x + len * 8, ul_y, color, bcolor, num);
-}
-
-void init_graphics(bootinfo_t *binfo)
-{
-    vinfo_g = binfo->vinfo;
-
-    // GPD MicroPC 用の画面補正
-    if (vinfo_g.x_axis < vinfo_g.y_axis) {
-        gpd = 1;
-    } else {
-        gpd = 0;
-    }
-
-    draw_square(0, 0, vinfo_g.x_axis - 1, vinfo_g.y_axis - 1, black);
 }
 

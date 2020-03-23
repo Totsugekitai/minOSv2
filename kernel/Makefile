@@ -29,8 +29,5 @@ int_handler.o: int_handler.c
 %.o: %.S
 	gcc $(CFLAGS) -c -o $@ $<
 
-%.o: %.asm
-	nasm -f elf64 -o $@ $<
-
 clean:
 	rm -f *.o *.elf *.map
