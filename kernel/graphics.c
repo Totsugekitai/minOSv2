@@ -1,9 +1,16 @@
 #include <stdint.h>
 #include "graphics.h"
 #include "fonts.h"
+#include "util.h"
 
 video_info_t vinfo_g;
 static int gpd = 0;
+
+const pix_format_t black = { 0x00, 0x00, 0x00, 0x00 };
+const pix_format_t white = { 0xff, 0xff, 0xff, 0x00 };
+const pix_format_t red   = { 0x00, 0x00, 0xff, 0x00 };
+const pix_format_t green = { 0x00, 0xff, 0x00, 0x00 };
+const pix_format_t blue  = { 0xff, 0x00, 0x00, 0x00 };
 
 void init_graphics(bootinfo_t *binfo)
 {
@@ -92,3 +99,66 @@ void printstr(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bco
     }
 }
 
+void printnum(uint32_t ul_x, uint32_t ul_y, struct pix_format_t color,
+        struct pix_format_t bcolor, uint64_t num)
+{
+    uint64_t i;
+    uint64_t numarr[16];
+    char numchararr[19];
+    for (i = 0; i < 16; i++) {
+        numarr[i] = (num & (mypow(2, 0 + i * 4) + mypow(2, 1 + i * 4) + mypow(2, 2 + i * 4) +
+                        mypow(2, 3 + i * 4))) >> i * 4;
+    }
+    numchararr[0] = '0';
+    numchararr[1] = 'x';
+    numchararr[18] = '\0';
+    for (i = 0; i < 16; i++) {
+        if (numarr[i] == 0x0) {
+            numchararr[17 - i] = '0';
+        } else if (numarr[i] == 0x1) {
+            numchararr[17 - i] = '1';
+        } else if (numarr[i] == 0x2) {
+            numchararr[17 - i] = '2';
+        } else if (numarr[i] == 0x3) {
+            numchararr[17 - i] = '3';
+        } else if (numarr[i] == 0x4) {
+            numchararr[17 - i] = '4';
+        } else if (numarr[i] == 0x5) {
+            numchararr[17 - i] = '5';
+        } else if (numarr[i] == 0x6) {
+            numchararr[17 - i] = '6';
+        } else if (numarr[i] == 0x7) {
+            numchararr[17 - i] = '7';
+        } else if (numarr[i] == 0x8) {
+            numchararr[17 - i] = '8';
+        } else if (numarr[i] == 0x9) {
+            numchararr[17 - i] = '9';
+        } else if (numarr[i] == 0xa) {
+            numchararr[17 - i] = 'a';
+        } else if (numarr[i] == 0xb) {
+            numchararr[17 - i] = 'b';
+        } else if (numarr[i] == 0xc) {
+            numchararr[17 - i] = 'c';
+        } else if (numarr[i] == 0xd) {
+            numchararr[17 - i] = 'd';
+        } else if (numarr[i] == 0xe) {
+            numchararr[17 - i] = 'e';
+        } else if (numarr[i] == 0xf) {
+            numchararr[17 - i] = 'f';
+        } else {
+            printstr(ul_x, ul_y, color, bcolor, "Invalid token");
+        }
+    }
+    printstr(ul_x, ul_y, color, bcolor, numchararr);
+}
+
+void printstrnum(uint32_t ul_x, uint32_t ul_y, struct pix_format_t color, struct pix_format_t bcolor,
+        char *s, uint64_t num)
+{
+    int len = 0;
+    for (int i = 0; s[i] != '\0'; i++) {
+        len++;
+    }
+    printstr(ul_x, ul_y, color, bcolor, s);
+    printnum(ul_x + len * 8, ul_y, color, bcolor, num);
+}
