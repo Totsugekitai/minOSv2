@@ -10,6 +10,7 @@ void io_sti(void);
 uint8_t io_in8(uint16_t port);
 void io_out8(uint16_t port, uint8_t val);
 uint64_t mypow(uint64_t num, uint64_t p);
+void *mymemset(void *buf, int ch, int n);
 void init_bss(void);
 
 #endif

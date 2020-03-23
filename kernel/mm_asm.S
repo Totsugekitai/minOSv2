@@ -37,3 +37,8 @@ label:
     pop     rbp
     ret
 
+.global     load_pgtable    # void load_pgtable(uint64_t *pgtable);
+load_pgtable:
+    mov     cr3,rdi
+    ret
+

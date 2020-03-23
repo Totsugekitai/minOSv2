@@ -54,6 +54,14 @@ uint64_t mypow(uint64_t num, uint64_t p)
     return ans;
 }
 
+void *mymemset(void *buf, int ch, int n)
+{
+    char *b = (char *)buf;
+    for (int i = 0; i < n; i++) {
+        b[i] = ch;
+    }
+    return (void *)b;
+}
 
 extern uint64_t __bss_start, __bss_end;
 void init_bss(void)

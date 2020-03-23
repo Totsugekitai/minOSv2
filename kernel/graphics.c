@@ -12,18 +12,6 @@ const pix_format_t red   = { 0x00, 0x00, 0xff, 0x00 };
 const pix_format_t green = { 0x00, 0xff, 0x00, 0x00 };
 const pix_format_t blue  = { 0xff, 0x00, 0x00, 0x00 };
 
-void init_graphics(bootinfo_t *binfo)
-{
-    vinfo_g = binfo->vinfo;
-
-    // GPD MicroPC 用の画面補正
-    if (vinfo_g.x_axis < vinfo_g.y_axis) {
-        gpd = 1;
-    } else {
-        gpd = 0;
-    }
-}
-
 static inline void draw_dot(uint32_t x, uint32_t y, pix_format_t color)
 {
     pix_format_t *fb = (pix_format_t *)vinfo_g.fb;
@@ -162,3 +150,18 @@ void printstrnum(uint32_t ul_x, uint32_t ul_y, struct pix_format_t color, struct
     printstr(ul_x, ul_y, color, bcolor, s);
     printnum(ul_x + len * 8, ul_y, color, bcolor, num);
 }
+
+void init_graphics(bootinfo_t *binfo)
+{
+    vinfo_g = binfo->vinfo;
+
+    // GPD MicroPC 用の画面補正
+    if (vinfo_g.x_axis < vinfo_g.y_axis) {
+        gpd = 1;
+    } else {
+        gpd = 0;
+    }
+
+    draw_square(0, 0, vinfo_g.x_axis - 1, vinfo_g.y_axis - 1, black);
+}
+
