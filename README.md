@@ -4,9 +4,15 @@ x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 [minOS](https://github.com/Totsugekitai/minOS) を書き直して作られています。
 
-`master` ブランチは GPD MicroPC にて実機確認済みです。
+`master` ブランチは GPD MicroPC にて実機動作確認済みです。
+
+`develop` ブランチは QEMU にて動作確認済みです。
 
 ## ビルド方法
+
+### カーネルのビルド
+
+ルートディレクトリで `make kernel` です。
 
 ### ブートローダのビルド
 
@@ -19,11 +25,7 @@ x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 ルートディレクトリで `make boot` です。
 
-### カーネルのビルド
-
-ルートディレクトリで `make kernel` です。
-
-## 実行方法
+## QEMU での実行方法
 
 ルートディレクトリで `make run` です。
 
