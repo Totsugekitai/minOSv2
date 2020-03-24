@@ -15,9 +15,6 @@ void entry_point(bootinfo_t *binfo)
     init_kpaging();
     paint_background(white);
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
-    printstr(200, 200, black, white, "minOSv2 - A minimal operating system version 2");
-    printstr(400, 400, black, white, "minOSv2 - A minimal operating system version 2");
-    printstr(600, 600, black, white, "minOSv2 - A minimal operating system version 2");
     halt();
 }
 
