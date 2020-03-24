@@ -1,7 +1,10 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#define PORT        0x3f8
+#include <stdint.h>
+
+#define PORT1       0x3f8
+#define PORT2       0x2f8
 
 #define PIC0_ICW1   0x20
 #define PIC0_OCW2   0x20

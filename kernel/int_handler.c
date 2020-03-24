@@ -24,11 +24,12 @@ void timer_handler(struct intr_frame *frame)
 }
 
 char keycode;
+extern uint16_t comport;
 __attribute__((interrupt))
-void com1_handler(struct intr_frame *frame)
+void com_handler(struct intr_frame *frame)
 {
     io_cli();
-    keycode = io_in8(PORT);
+    keycode = io_in8(comport);
     puts_serial("COM1\n");
     io_out8(PIC0_OCW2, PIC_EOI);
     io_out8(PIC1_OCW2, PIC_EOI);

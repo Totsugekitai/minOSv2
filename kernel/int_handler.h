@@ -13,7 +13,7 @@ struct intr_frame {
 
 // user defined handlers
 void timer_handler(struct intr_frame *frame);
-void com1_handler(struct intr_frame *frame);
+void com_handler(struct intr_frame *frame);
 
 // exception handlers
 void de_handler(struct intr_frame *frame, uint64_t error_code);

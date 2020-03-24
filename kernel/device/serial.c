@@ -22,29 +22,37 @@ void init_pic(void)
     io_sti();
 }
 
+extern int gpd;
+uint16_t comport;
 void init_serial(void)
 {
+    if (gpd) {
+        comport = PORT2;
+    } else {
+        comport = PORT1;
+    }
+
     io_cli();
-    io_out8(PORT + 1, 0x00);
-    io_out8(PORT + 3, 0x80);
-    io_out8(PORT + 0, 0x01);
-    io_out8(PORT + 1, 0x00);
-    io_out8(PORT + 3, 0x03);
-    io_out8(PORT + 2, 0xC7);
-    io_out8(PORT + 4, 0x0B);
-    io_out8(PORT + 1, 0x0d);    // 割り込み許可
+    io_out8(comport + 1, 0x00);
+    io_out8(comport + 3, 0x80);
+    io_out8(comport + 0, 0x01);    // 115200 baud rete
+    io_out8(comport + 1, 0x00);
+    io_out8(comport + 3, 0x03);
+    io_out8(comport + 2, 0xC7);
+    io_out8(comport + 4, 0x0B);
+    io_out8(comport + 1, 0x0d);    // 割り込み許可
     io_sti();
 }
 
 static uint8_t serial_thr_empty(void)
 {
-    return io_in8(PORT + 5) & 0x20;
+    return io_in8(comport + 5) & 0x20;
 }
 
 static void write_serial(uint8_t c)
 {
-    while (!serial_thr_empty()) { halt(); }
-    io_out8(PORT, c);
+    while (!serial_thr_empty());
+    io_out8(comport, c);
 }
 
 void puts_serial(const char *s)

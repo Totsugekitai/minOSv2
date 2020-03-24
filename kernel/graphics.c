@@ -4,7 +4,7 @@
 #include "util.h"
 
 video_info_t vinfo_g;
-static int gpd = 0;
+int gpd = 0;
 
 const pix_format_t black = { 0x00, 0x00, 0x00, 0x00 };
 const pix_format_t white = { 0xff, 0xff, 0xff, 0x00 };

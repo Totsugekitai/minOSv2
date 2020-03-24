@@ -51,7 +51,8 @@ void init_idt(void)
     // register user-defined handlers
     idt[32] = create_gate_desc((uint64_t)timer_handler);
     //idt[33] = create_gate_desc((uint64_t)ps2_handler);
-    idt[36] = create_gate_desc((uint64_t)com1_handler);
+    idt[35] = create_gate_desc((uint64_t)com_handler);
+    idt[36] = create_gate_desc((uint64_t)com_handler);
 
     uint16_t size_idt = sizeof(struct gate_desc) * 256 - 1;
     __asm__ volatile("sub rsp,0x10\n\t"
