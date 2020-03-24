@@ -23,16 +23,33 @@ void timer_handler(struct intr_frame *frame)
     io_out8(PIC1_OCW2, PIC_EOI);
 }
 
-char keycode;
+char keycode = '\n';
+uint32_t x_ichi = 0;
+uint32_t y_ichi = 0;
 extern uint16_t comport;
 __attribute__((interrupt))
 void com_handler(struct intr_frame *frame)
 {
     io_cli();
     keycode = io_in8(comport);
-    puts_serial("COM1\n");
     io_out8(PIC0_OCW2, PIC_EOI);
     io_out8(PIC1_OCW2, PIC_EOI);
+    puts_serial("COM Interrupt: ");
+    putn_serial(keycode);
+    puts_serial("\r\n");
+    if (keycode != '\n' && keycode != '\r' && keycode != 0x7f) {    // 0x7f = DEL
+        char s[2];
+        s[0] = keycode;
+        s[1] = '\0';
+        printstr(50 + x_ichi, 50 + y_ichi, green, black, s);
+        x_ichi += 8;
+    } else if (keycode == 0x7f) {
+        x_ichi -= 8;
+        printstr(50 + x_ichi, 50 + y_ichi, white, white, " ");
+    } else {
+        x_ichi = 0;
+        y_ichi += 16;
+    }
     io_sti();
 }
 

@@ -23,5 +23,6 @@
 void init_pic(void);
 void init_serial(void);
 void puts_serial(const char *s);
+void putn_serial(uint64_t num);
 
 #endif
