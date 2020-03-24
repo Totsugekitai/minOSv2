@@ -23,27 +23,27 @@ void io_sti(void)
     __asm__ volatile("sti");
 }
 
-uint8_t io_in8(uint16_t port)
-{
-    uint8_t val = 0;
-    __asm__ volatile("movw dx,%1\n\t"
-                     "in   al,dx\n\t"
-                     "movb %0,al\n\t"
-                    : "=m" (val)
-                    : "r" (port)
-                    : "rax", "rdx");
-    return val;
-}
-
-void io_out8(uint16_t port, uint8_t val)
-{
-    __asm__ volatile("movw dx,%0\n\t"
-                     "movb al,%1\n\t"
-                     "out dx,al\n\t"
-                    :
-                    : "r" (port), "r" (val)
-                    : "rax", "rdx");
-}
+//uint8_t io_in8(uint16_t port)
+//{
+//    uint8_t val = 0;
+//    __asm__ volatile("movw dx,%1\n\t"
+//                     "in   al,dx\n\t"
+//                     "movb %0,al\n\t"
+//                    : "=m" (val)
+//                    : "r" (port)
+//                    : "rax", "rdx");
+//    return val;
+//}
+//
+//void io_out8(uint16_t port, uint8_t val)
+//{
+//    __asm__ volatile("movw dx,%0\n\t"
+//                     "movb al,%1\n\t"
+//                     "out dx,al\n\t"
+//                    :
+//                    : "r" (port), "r" (val)
+//                    : "rax", "rdx");
+//}
 
 uint64_t mypow(uint64_t num, uint64_t p)
 {

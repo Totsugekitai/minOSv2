@@ -1,4 +1,4 @@
-.PHONY: default boot kernel run all clean
+.PHONY: default boot kernel run debug-log all clean
 
 QEMU	= /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
 
@@ -13,6 +13,16 @@ kernel:
 	cp kernel/kernel.elf ./fs
 
 run:
+	$(QEMU) \
+	-drive if=pflash,format=raw,readonly,file=tool/OVMF_CODE.fd \
+	-drive if=pflash,format=raw,file=tool/OVMF_VARS.fd \
+	fat:rw:fs/ -m 4G \
+	-chardev stdio,mux=on,id=com1 \
+	-serial chardev:com1 \
+	-monitor telnet::1234,server,nowait \
+	-gdb tcp::1235 \
+
+debug-log:
 	$(QEMU) \
 	-drive if=pflash,format=raw,readonly,file=tool/OVMF_CODE.fd \
 	-drive if=pflash,format=raw,file=tool/OVMF_VARS.fd \

@@ -5,8 +5,9 @@
 #include "../commom/boot_types.h"
 #include "util.h"
 #include "graphics.h"
-#include "serial.h"
 #include "mm.h"
+#include "interrupt.h"
+#include "device/serial.h"
 
 #endif
 

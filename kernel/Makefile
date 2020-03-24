@@ -9,11 +9,11 @@ CFLAGS		= -g -O0 \
 LDFLAGS		= -s -x -T kernel.lds -Map kernel.map -e entry_point
 
 OBJS		= kernel.o \
-			  util.o \
+			  util.o util_asm.o \
 			  graphics.o \
-			  serial.o \
 			  mm.o mm_asm.o \
-			  int_handler.o \
+			  interrupt.o int_handler.o \
+			  device/serial.o \
 
 .PHONY: clean
 
@@ -30,4 +30,5 @@ int_handler.o: int_handler.c
 	gcc $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *.elf *.map
+	@rm -f *.o *.elf *.map
+	@rm -f device/*.o
