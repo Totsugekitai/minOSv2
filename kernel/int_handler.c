@@ -2,6 +2,7 @@
 #include "util.h"
 #include "graphics.h"
 #include "int_handler.h"
+#include "device/serial.h"
 
 extern const pix_format_t black;
 extern const pix_format_t white;
@@ -9,6 +10,35 @@ extern const pix_format_t red;
 extern const pix_format_t green;
 extern const pix_format_t blue;
 
+/* ------------------------------------
+ * user defined handlers
+ * ------------------------------------
+ */
+uint64_t tick;
+__attribute__((interrupt))
+void timer_handler(struct intr_frame *frame)
+{
+    tick++;
+    io_out8(PIC0_OCW2, PIC_EOI);
+    io_out8(PIC1_OCW2, PIC_EOI);
+}
+
+char keycode;
+__attribute__((interrupt))
+void com1_handler(struct intr_frame *frame)
+{
+    io_cli();
+    keycode = io_in8(PORT);
+    puts_serial("COM1\n");
+    io_out8(PIC0_OCW2, PIC_EOI);
+    io_out8(PIC1_OCW2, PIC_EOI);
+    io_sti();
+}
+
+/* ------------------------------------
+ * exception handlers
+ * ------------------------------------
+ */
 __attribute__((interrupt))
 void de_handler(struct intr_frame *frame, uint64_t error_code)
 {

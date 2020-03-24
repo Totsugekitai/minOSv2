@@ -1,4 +1,4 @@
-.PHONY: default boot kernel run all clean
+.PHONY: default boot kernel run debug-log all clean
 
 QEMU	= /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
 
