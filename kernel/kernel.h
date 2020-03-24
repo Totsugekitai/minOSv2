@@ -7,6 +7,7 @@
 #include "graphics.h"
 #include "serial.h"
 #include "mm.h"
+#include "interrupt.h"
 
 #endif
 

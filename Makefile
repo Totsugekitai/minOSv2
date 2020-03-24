@@ -17,6 +17,16 @@ run:
 	-drive if=pflash,format=raw,readonly,file=tool/OVMF_CODE.fd \
 	-drive if=pflash,format=raw,file=tool/OVMF_VARS.fd \
 	fat:rw:fs/ -m 4G \
+	-chardev stdio,mux=on,id=com1 \
+	-serial chardev:com1 \
+	-monitor telnet::1234,server,nowait \
+	-gdb tcp::1235 \
+
+debug-log:
+	$(QEMU) \
+	-drive if=pflash,format=raw,readonly,file=tool/OVMF_CODE.fd \
+	-drive if=pflash,format=raw,file=tool/OVMF_VARS.fd \
+	fat:rw:fs/ -m 4G \
 	-chardev stdio,mux=on,id=com1,logfile=serial_output.log \
 	-serial chardev:com1 \
 	-monitor telnet::1234,server,nowait \

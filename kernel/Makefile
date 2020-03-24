@@ -13,7 +13,7 @@ OBJS		= kernel.o \
 			  graphics.o \
 			  serial.o \
 			  mm.o mm_asm.o \
-			  int_handler.o \
+			  interrupt.o int_handler.o \
 
 .PHONY: clean
 

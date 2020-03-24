@@ -13,8 +13,11 @@ void entry_point(bootinfo_t *binfo)
     init_serial();
     init_gdt();
     init_kpaging();
+    init_idt();
+
     paint_background(white);
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
+
     halt();
 }
 
