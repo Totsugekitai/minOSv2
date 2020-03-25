@@ -23,6 +23,9 @@ void entry_point(bootinfo_t *binfo)
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
 
     puts_serial("Serial ok\r\n");
+
+    check_all_buses();
+    check_ahci();
     halt();
 }
 

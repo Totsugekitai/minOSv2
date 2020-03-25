@@ -14,6 +14,8 @@ OBJS		= kernel.o \
 			  mm.o mm_asm.o \
 			  interrupt.o int_handler.o \
 			  device/serial.o \
+			  device/pci.o \
+			  device/ahci.o \
 
 .PHONY: clean
 

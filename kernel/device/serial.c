@@ -127,3 +127,11 @@ void putn_serial(uint64_t num)
     }
     puts_serial(numchararr);
 }
+
+void putsn_serial(const char *s, uint64_t n)
+{
+    puts_serial(s);
+    putn_serial(n);
+    puts_serial("\r\n");
+}
+
