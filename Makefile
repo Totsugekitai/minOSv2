@@ -19,6 +19,9 @@ run:
 	fat:rw:fs/ -m 4G \
 	-chardev stdio,mux=on,id=com1 \
 	-serial chardev:com1 \
+	-device ich9-ahci,id=ahci \
+	-device ide-drive,drive=sata,bus=ahci.0 \
+	-drive if=none,id=sata,file=tool/hdd.img \
 	-monitor telnet::1234,server,nowait \
 	-gdb tcp::1235 \
 
@@ -29,8 +32,12 @@ debug-log:
 	fat:rw:fs/ -m 4G \
 	-chardev stdio,mux=on,id=com1,logfile=serial_output.log \
 	-serial chardev:com1 \
+	-device ich9-ahci,id=ahci \
+	-device ide-drive,drive=sata,bus=ahci.0 \
+	-drive if=none,id=sata,file=tool/hdd.img \
 	-monitor telnet::1234,server,nowait \
 	-gdb tcp::1235 \
+	--trace events=trace.event \
 
 all:
 	make boot
