@@ -20,6 +20,10 @@
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 
+#define CMD_LIST_BASE 0x50000000    // size: 0x20 * 32 * 32 = 0x8000
+#define RCVD_FIS_BASE 0x50008000    // size: 0x100 * 32     = 0x2000
+#define CMD_TBL_BASE  0x50010000
+
 // AHCI Address Base
 // It is defined at pci.c
 extern uint64_t *abar;
@@ -27,7 +31,7 @@ extern uint64_t *abar;
 void put_hba_memory_register(void)
 {
     HBA_MEM_REG *hba_memreg = (HBA_MEM_REG *)abar;
-    puts_serial("status of Generic Host Control\r\r\n");
+    puts_serial("status of Generic Host Control\r\n");
     putsn_serial("cap: ", (uint64_t)hba_memreg->cap);
     putsn_serial("ghc: ", (uint64_t)hba_memreg->ghc);
     putsn_serial("is: ", (uint64_t)hba_memreg->is);
@@ -39,12 +43,12 @@ void put_hba_memory_register(void)
     putsn_serial("em_ctl: ", (uint64_t)hba_memreg->em_ctl);
     putsn_serial("cap2: ", (uint64_t)hba_memreg->cap2);
     putsn_serial("bohc: ", (uint64_t)hba_memreg->bohc);
-    puts_serial("\r\r\n");
+    puts_serial("\r\n");
 }
 
 void put_port_status(HBA_PORT *port)
 {
-    puts_serial("status of HBA Port\r\r\n");
+    puts_serial("status of HBA Port\r\n");
     putsn_serial("clb: ", (uint64_t)port->clb);
     putsn_serial("clbu: ", (uint64_t)port->clbu);
     putsn_serial("fb: ", (uint64_t)port->fb);
@@ -61,7 +65,7 @@ void put_port_status(HBA_PORT *port)
     putsn_serial("ci: ", (uint64_t)port->ci);
     putsn_serial("sntf: ", (uint64_t)port->sntf);
     putsn_serial("fbs: ", (uint64_t)port->fbs);
-    puts_serial("\r\r\n");
+    puts_serial("\r\n");
 }
 
 /* ----------------------------------------------------------------------------
@@ -100,8 +104,6 @@ static uint32_t probe_idle_port(uint32_t pi)
     return pidle;
 }
 
-#define CMD_LIST_BASE 0x10000000    // size: 0x20 * 32 * 32 = 0x8000
-#define RCVD_FIS_BASE 0x10008000    // size: 0x100 * 32     = 0x2000
 static inline void alloc_mem_for_ports(uint32_t pi_list, uint16_t slot_num)
 {
     mymemset((void *)CMD_LIST_BASE, 0, 0x8000 + 0x2000);
@@ -219,7 +221,6 @@ static int find_free_cmdslot(HBA_PORT *port)
     return -1;
 }
 
-#define CMD_TBL_BASE 0x10010000
 static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 {
     mymemset((void *)table_addr, 0, 0x80 + 16 * 65536); // zero clear
@@ -426,7 +427,7 @@ void check_ahci(void)
         }
     }
     if (k == -1) {
-        puts_serial("implemented port not foundr\r\n");
+        puts_serial("implemented port not found\r\n");
         return;
     }
     HBA_PORT *port= &((HBA_MEM_REG *)abar)->ports[k];
@@ -435,24 +436,23 @@ void check_ahci(void)
     for (int i = 0; i < 512; i++) {
         buf[i] = 0xbeef;
     }
-    //for (int i = 0; i < 256; i++) {
-    //    putn_serial((uint64_t)buf[i]);
-    //}
 
-    ahci_read_test(port, 0, 0x100, 1, buf);
-    //for (int i = 0; i < 256; i++) {
-    //    putn_serial((uint64_t)buf[i]);
-    //}
+    ahci_read_test(port, 0, 0x0, 1, buf);
+    for (int i = 0; i < 256; i++) {
+        putn_serial((uint64_t)buf[i]);
+    }
+    puts_serial("\r\n");
 
     uint16_t buf1[512];
     for (int i = 0; i < 512; i++) {
         buf1[i] = 0xabcd;
+        //buf1[i] = 0;
     }
 
-    //print_port_status(port);
-    //puts_serial("write start\r\n");
-    //ahci_write_test(port, 0, 0x0, 1, buf1);
-    //puts_serial("write end\r\n");
+    put_port_status(port);
+    puts_serial("write start\r\n");
+    ahci_write_test(port, 0, 0x0, 1, buf1);
+    puts_serial("write end\r\n");
 
     ahci_read_test(port, 0, 0x0, 1, buf);
     for (int i = 0; i < 256; i++) {
@@ -461,8 +461,5 @@ void check_ahci(void)
     puts_serial("\r\n");
 
     puts_serial("iroiro end\r\n");
-    while (1) {
-        __asm__ volatile("hlt");
-    }
 }
 
