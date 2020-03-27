@@ -21,18 +21,41 @@ void timer_handler(struct intr_frame *frame)
     tick++;
     io_out8(PIC0_OCW2, PIC_EOI);
     io_out8(PIC1_OCW2, PIC_EOI);
+
+    if ((tick % 0x10) == 0) {
+        printstrnum(400, 0, blue, white, "tick: ", tick);
+    }
 }
 
-char keycode;
+char key = '\n';
+uint32_t x_ichi = 0;
+uint32_t y_ichi = 0;
 extern uint16_t comport;
 __attribute__((interrupt))
 void com_handler(struct intr_frame *frame)
 {
     io_cli();
-    keycode = io_in8(comport);
-    puts_serial("COM1\n");
+    key = io_in8(comport);
     io_out8(PIC0_OCW2, PIC_EOI);
     io_out8(PIC1_OCW2, PIC_EOI);
+    puts_serial("COM Interrupt: ");
+    putn_serial(key);
+    puts_serial("\r\n");
+
+    if (key != '\n' && key != '\r' && key != 0x7f) {    // 0x7f = DEL
+        char s[2];
+        s[0] = key;
+        s[1] = '\0';
+        printstr(50 + x_ichi, 50 + y_ichi, green, black, s);
+        x_ichi += 8;
+    } else if (key == 0x7f) {
+        x_ichi -= 8;
+        printstr(50 + x_ichi, 50 + y_ichi, white, white, " ");
+    } else {
+        x_ichi = 0;
+        y_ichi += 16;
+    }
+
     io_sti();
 }
 

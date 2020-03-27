@@ -4,7 +4,9 @@
 #include <stdint.h>
 
 #define PORT1       0x3f8
+#define PORT3       0x3e8
 #define PORT2       0x2f8
+#define PORT4       0x2e8
 
 #define PIC0_ICW1   0x20
 #define PIC0_OCW2   0x20
@@ -23,5 +25,8 @@
 void init_pic(void);
 void init_serial(void);
 void puts_serial(const char *s);
+void putn_serial(uint64_t n);
+void putsn_serial(const char *s, uint64_t n);
+void putsp_serial(const char *s, const void *p);
 
 #endif

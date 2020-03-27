@@ -8,6 +8,8 @@
 #include "mm.h"
 #include "interrupt.h"
 #include "device/serial.h"
+#include "device/pci.h"
+#include "device/ahci.h"
 
 #endif
 
