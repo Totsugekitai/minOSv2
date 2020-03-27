@@ -12,10 +12,12 @@ OBJS		= kernel.o \
 			  util.o util_asm.o \
 			  graphics.o \
 			  mm.o mm_asm.o \
+			  task.o task_asm.o \
 			  interrupt.o int_handler.o \
 			  device/serial.o \
 			  device/pci.o \
 			  device/ahci.o \
+			  app.o \
 
 .PHONY: clean
 
