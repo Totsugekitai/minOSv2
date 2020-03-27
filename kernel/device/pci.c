@@ -133,7 +133,7 @@ void check_all_buses(void)
                 if (config.class_code == 0x01 && config.subclass == 0x06) {
                     abar = get_ahci_base_address(bus, device, func);
                     puts_serial("AHCI device found!!!\r\n");
-                    putsn_serial("ABAR: ", (uint64_t)abar);
+                    putsp_serial("ABAR: ", abar);
                     puts_serial("\r\n");
                 }
             }

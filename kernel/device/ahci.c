@@ -26,45 +26,44 @@
 
 // AHCI Address Base
 // It is defined at pci.c
-extern uint64_t *abar;
+extern HBA_MEM_REG *abar;
 
 void put_hba_memory_register(void)
 {
-    HBA_MEM_REG *hba_memreg = (HBA_MEM_REG *)abar;
     puts_serial("status of Generic Host Control\r\n");
-    putsn_serial("cap: ", (uint64_t)hba_memreg->cap);
-    putsn_serial("ghc: ", (uint64_t)hba_memreg->ghc);
-    putsn_serial("is: ", (uint64_t)hba_memreg->is);
-    putsn_serial("pi: ", (uint64_t)hba_memreg->pi);
-    putsn_serial("vs: ", (uint64_t)hba_memreg->vs);
-    putsn_serial("ccc_ctl: ", (uint64_t)hba_memreg->ccc_ctl);
-    putsn_serial("ccc_pts: ", (uint64_t)hba_memreg->ccc_pts);
-    putsn_serial("em_loc: ", (uint64_t)hba_memreg->em_loc);
-    putsn_serial("em_ctl: ", (uint64_t)hba_memreg->em_ctl);
-    putsn_serial("cap2: ", (uint64_t)hba_memreg->cap2);
-    putsn_serial("bohc: ", (uint64_t)hba_memreg->bohc);
+    putsn_serial("cap: ", abar->cap);
+    putsn_serial("ghc: ", abar->ghc);
+    putsn_serial("is: ", abar->is);
+    putsn_serial("pi: ", abar->pi);
+    putsn_serial("vs: ", abar->vs);
+    putsn_serial("ccc_ctl: ", abar->ccc_ctl);
+    putsn_serial("ccc_pts: ", abar->ccc_pts);
+    putsn_serial("em_loc: ", abar->em_loc);
+    putsn_serial("em_ctl: ", abar->em_ctl);
+    putsn_serial("cap2: ", abar->cap2);
+    putsn_serial("bohc: ", abar->bohc);
     puts_serial("\r\n");
 }
 
 void put_port_status(HBA_PORT *port)
 {
     puts_serial("status of HBA Port\r\n");
-    putsn_serial("clb: ", (uint64_t)port->clb);
-    putsn_serial("clbu: ", (uint64_t)port->clbu);
-    putsn_serial("fb: ", (uint64_t)port->fb);
-    putsn_serial("fbu: ", (uint64_t)port->fbu);
-    putsn_serial("is: ", (uint64_t)port->is);
-    putsn_serial("ie: ", (uint64_t)port->ie);
-    putsn_serial("cmd: ", (uint64_t)port->cmd);
-    putsn_serial("tfd: ", (uint64_t)port->tfd);
-    putsn_serial("sig: ", (uint64_t)port->sig);
-    putsn_serial("ssts: ", (uint64_t)port->ssts);
-    putsn_serial("sctl: ", (uint64_t)port->sctl);
-    putsn_serial("serr: ", (uint64_t)port->serr);
-    putsn_serial("sact: ", (uint64_t)port->sact);
-    putsn_serial("ci: ", (uint64_t)port->ci);
-    putsn_serial("sntf: ", (uint64_t)port->sntf);
-    putsn_serial("fbs: ", (uint64_t)port->fbs);
+    putsn_serial("clb: ", port->clb);
+    putsn_serial("clbu: ", port->clbu);
+    putsn_serial("fb: ", port->fb);
+    putsn_serial("fbu: ", port->fbu);
+    putsn_serial("is: ", port->is);
+    putsn_serial("ie: ", port->ie);
+    putsn_serial("cmd: ", port->cmd);
+    putsn_serial("tfd: ", port->tfd);
+    putsn_serial("sig: ", port->sig);
+    putsn_serial("ssts: ", port->ssts);
+    putsn_serial("sctl: ", port->sctl);
+    putsn_serial("serr: ", port->serr);
+    putsn_serial("sact: ", port->sact);
+    putsn_serial("ci: ", port->ci);
+    putsn_serial("sntf: ", port->sntf);
+    putsn_serial("fbs: ", port->fbs);
     puts_serial("\r\n");
 }
 
@@ -75,12 +74,11 @@ void put_port_status(HBA_PORT *port)
 
 static inline void hba_reset(void)
 {
-    HBA_MEM_REG *memreg = (HBA_MEM_REG *)abar;
     // GHC.AE = 1 and GHC.HR = 1 to reset HBA
-    memreg->ghc = 0x80000000;
-    memreg->ghc |= 0x00000001;
+    abar->ghc = 0x80000000;
+    abar->ghc |= 0x00000001;
     // during HR = 1, polling
-    while (memreg->ghc & 0x1) {
+    while (abar->ghc & 0x1) {
         puts_serial(".");
         __asm__ volatile("hlt");
     }
@@ -90,14 +88,13 @@ static inline void hba_reset(void)
 // if PxCMD.ST, PxCMD.CR, and PxCMD.FRE is clear, the port is idle.
 static uint32_t probe_idle_port(uint32_t pi)
 {
-    HBA_MEM_REG *memreg = (HBA_MEM_REG *)abar;
     uint32_t pidle = 0;
     for (int i = 0; i < 32; i++) {
         if (pi >> i) {
-            if ((memreg->ports[i].cmd & 0x811) == 0) {
+            if ((abar->ports[i].cmd & 0x811) == 0) {
                 pidle |= 1 << i;
             } else {
-                putsn_serial("port is busy - PxCMD: ", (uint64_t)memreg->ports[i].cmd);
+                putsn_serial("port is busy - PxCMD: ", abar->ports[i].cmd);
             }
         }
     }
@@ -107,7 +104,7 @@ static uint32_t probe_idle_port(uint32_t pi)
 static inline void alloc_mem_for_ports(uint32_t pi_list, uint16_t slot_num)
 {
     mymemset((void *)CMD_LIST_BASE, 0, 0x8000 + 0x2000);
-    HBA_PORT *ports = (HBA_PORT *)&(((HBA_MEM_REG *)abar)->ports[0]);
+    HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
             ports[i].clb = CMD_LIST_BASE + sizeof(HBA_CMD_HEADER) * 32 * i;
@@ -119,7 +116,7 @@ static inline void alloc_mem_for_ports(uint32_t pi_list, uint16_t slot_num)
 
 static inline void clear_ports_serr(uint32_t pi_list)
 {
-    HBA_PORT *ports = (HBA_PORT *)&(((HBA_MEM_REG *)abar)->ports[0]);
+    HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
             ports[i].serr |= 0x7ff0f03;    // clear by writing 1s to each bit
@@ -132,20 +129,19 @@ static inline void clear_ports_serr(uint32_t pi_list)
 static inline void enable_ahci_interrupt(uint32_t pi_list)
 {
     // first, PxIS are cleared to 0
-    HBA_MEM_REG *ghc = (HBA_MEM_REG *)abar;
-    HBA_PORT *ports = (HBA_PORT *)&(ghc->ports[0]);
+    HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
             ports[i].is = 0xffffffff; // clear pending interrupt bits
             while (ports[i].is) {
                 __asm__ volatile("hlt");
-                putsn_serial("PxIS clear cannot be finished: ", (uint64_t)ports[i].is);
+                putsn_serial("PxIS clear cannot be finished: ", ports[i].is);
             }
         }
     }
     // second, IS.IPS is cleared to 0
-    ghc->is &= ~(ghc->is);
-    while (ghc->is) {
+    abar->is &= ~(abar->is);
+    while (abar->is) {
         __asm__ volatile("hlt");
         puts_serial("GHC.IS.IPS clear cannot be finished.\r\n");
     }
@@ -156,7 +152,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
         }
     }
     // set GHC.IE to 1
-    ghc->ghc |= 0x2;
+    abar->ghc |= 0x2;
 }
 
 /*
@@ -171,12 +167,11 @@ static inline void ahci_init(void)
     hba_reset();
     puts_serial("HBA reset end.\r\n");
 
-    HBA_MEM_REG *memreg = (HBA_MEM_REG *)abar;
     // step 1: GHC.AE = 1
-    memreg->ghc |= 0x80000000;
+    abar->ghc |= 0x80000000;
     puts_serial("AHCI init step 1 end.\r\n");
     // step 2: determine implemented port
-    uint32_t pi = memreg->pi;
+    uint32_t pi = abar->pi;
     puts_serial("AHCI init step 2 end.\r\n");
     // step 3: ensure that the controller is not running state
     // if PxCMD.ST, PxCMD.CR, and PxCMD.FRE is clear, the port is idle.
@@ -188,7 +183,7 @@ static inline void ahci_init(void)
     }
     puts_serial("AHCI init step 3 end.\r\n");
     // step 4: determine how many command slots the HBA supports
-    uint16_t slot_num = (uint16_t)((memreg->cap >> 8) & 0x1f);
+    uint16_t slot_num = (uint16_t)((abar->cap >> 8) & 0x1f);
     puts_serial("AHCI init step 4 end.\r\n");
     // step 5: allocate memory for implemented ports
     // required params: PxCLB and PxFB
@@ -223,7 +218,7 @@ static int find_free_cmdslot(HBA_PORT *port)
 
 static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 {
-    mymemset((void *)table_addr, 0, 0x80 + 16 * 65536); // zero clear
+    mymemset(table_addr, 0, 0x80 + 16 * 65536); // zero clear
     HBA_CMD_TBL *table = (HBA_CMD_TBL *)table_addr;
 
     // build CFIS
@@ -326,10 +321,9 @@ static inline void clear_pxis(HBA_PORT *port)
 
 static inline void clear_ghc_is(int portno)
 {
-    HBA_MEM_REG *ghc = (HBA_MEM_REG *)abar;
-    ghc->is |= 1 << portno;
+    abar->is |= 1 << portno;
     puts_serial("while clear IS.IPS\r\n");
-    while (ghc->is) {
+    while (abar->is) {
         __asm__ volatile("hlt");
     }
     puts_serial("clearing IS.IPS is finished\r\n");
@@ -416,7 +410,7 @@ void check_ahci(void)
     ahci_init();    // AHCI initialization
     put_hba_memory_register();
 
-    uint32_t pi = ((HBA_MEM_REG *)abar)->pi;
+    uint32_t pi = abar->pi;
     int k = -1;
     for (int i = 0; i < 32; i++) {
         if ((pi & 1) == 1) {
@@ -430,7 +424,7 @@ void check_ahci(void)
         puts_serial("implemented port not found\r\n");
         return;
     }
-    HBA_PORT *port= &((HBA_MEM_REG *)abar)->ports[k];
+    HBA_PORT *port= &abar->ports[k];
 
     uint16_t buf[512];
     for (int i = 0; i < 512; i++) {
@@ -439,7 +433,7 @@ void check_ahci(void)
 
     ahci_read_test(port, 0, 0x0, 1, buf);
     for (int i = 0; i < 256; i++) {
-        putn_serial((uint64_t)buf[i]);
+        putn_serial(buf[i]);
     }
     puts_serial("\r\n");
 
@@ -456,7 +450,7 @@ void check_ahci(void)
 
     ahci_read_test(port, 0, 0x0, 1, buf);
     for (int i = 0; i < 256; i++) {
-        putn_serial((uint64_t)buf[i]);
+        putn_serial(buf[i]);
     }
     puts_serial("\r\n");
 
