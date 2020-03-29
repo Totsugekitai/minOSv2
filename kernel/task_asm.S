@@ -10,14 +10,19 @@ init_stack:           # uint64_t *init_stack(uint64_t stack_bottom, uint64_t rip
     push    rsi       # push rip(second argument) to stack bottom
                       # because function switch_context requires return rip
     push    0         # rbp
+    push    0         # r15
+    push    0         # r14
+    push    0         # r13
+    push    0         # r12
     push    0         # r11
     push    0         # r10
     push    0         # r9
     push    0         # r8
     push    rdx       # rdi
     push    0         # rsi
-    push    0         # rcx
     push    0         # rdx
+    push    0         # rcx
+    push    0         # rbx
     push    0         # rax
     mov     rax,rsp   # set current rsp to return value
     mov     rsp,rcx   # load rsp from rcx
@@ -29,6 +34,10 @@ init_stack:           # uint64_t *init_stack(uint64_t stack_bottom, uint64_t rip
 switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp);
 # push current task's general registers to stack
     push    rbp
+    push    r15
+    push    r14
+    push    r13
+    push    r12
     push    r11
     push    r10
     push    r9
@@ -37,12 +46,14 @@ switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp
     push    rsi
     push    rdx
     push    rcx
+    push    rbx
     push    rax
 # switch rsp
     mov     [rdi],rsp
     mov     rsp,rsi
 # pop next task's general registers from stack
     pop     rax
+    pop     rbx
     pop     rcx
     pop     rdx
     pop     rsi
@@ -51,6 +62,10 @@ switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp
     pop     r9
     pop     r10
     pop     r11
+    pop     r12
+    pop     r13
+    pop     r14
+    pop     r15
     pop     rbp
 # return to next task
     ret
