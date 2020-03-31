@@ -1,14 +1,8 @@
 #include <stdint.h>
+#include "interrupt.h"
 #include "int_handler.h"
 
-struct gate_desc {
-    uint32_t low;
-    uint32_t mid;
-    uint64_t high;
-};
-
 struct gate_desc *const idt = (struct gate_desc *)0x10000;
-//struct gate_desc *const idt = (struct gate_desc *)0x13000;
 
 struct gate_desc create_gate_desc(uint64_t handler)
 {
@@ -23,7 +17,10 @@ struct gate_desc create_gate_desc(uint64_t handler)
 void init_idt(void)
 {
     // Initialize
-    struct gate_desc zero = { 0, 0, 0 };
+    struct gate_desc zero;
+    zero.high = 0;
+    zero.mid = 0;
+    zero.low = 0;
     for (int i = 0; i < 256; i++) {
         idt[i] = zero;
     }
@@ -58,12 +55,13 @@ void init_idt(void)
     idt[38] = create_gate_desc((uint64_t)com_handler);
 
     uint16_t size_idt = sizeof(struct gate_desc) * 256 - 1;
-    __asm__ volatile("sub rsp,0x10\n\t"
-                     "mov [rsp],%0\n\t"
-                     "mov [rsp+2],%1\n\t"
-                     "lidt [rsp]\n\t"
-                     "add rsp,0x10\n\t"
-                    :
-                    : "r" (size_idt), "r" (idt));
-
+    //__asm__ volatile(".intel_syntax noprefix\n\t"
+    //                 "sub rsp,0x10\n\t"
+    //                 "mov [rsp],%0\n\t"
+    //                 "mov [rsp+2],%1\n\t"
+    //                 "lidt [rsp]\n\t"
+    //                 "add rsp,0x10\n\t"
+    //                :
+    //                : "r" (size_idt), "r" (idt));
+    set_idt(idt, size_idt);
 }
