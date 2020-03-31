@@ -30,14 +30,14 @@ debug-log:
 	-drive if=pflash,format=raw,readonly,file=tool/OVMF_CODE.fd \
 	-drive if=pflash,format=raw,file=tool/OVMF_VARS.fd \
 	fat:rw:fs/ -m 4G \
-	-chardev stdio,mux=on,id=com1,logfile=serial_output.log \
+	-chardev stdio,mux=on,id=com1,logfile=log/serial_output.log \
 	-serial chardev:com1 \
 	-device ich9-ahci,id=ahci \
 	-device ide-drive,drive=sata,bus=ahci.0 \
 	-drive if=none,id=sata,file=tool/hdd.img \
 	-monitor telnet::1234,server,nowait \
 	-gdb tcp::1235 \
-	--trace events=trace.event \
+	--trace events=log/trace.event \
 
 all:
 	make boot

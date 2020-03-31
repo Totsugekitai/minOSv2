@@ -329,21 +329,21 @@ static inline void clear_ghc_is(int portno)
     puts_serial("clearing IS.IPS is finished\r\n");
 }
 
-static inline void stop_cmd(HBA_PORT *port)
-{
-    puts_serial("stop_cmd start\r\n");
-    // clear ST
-    port->cmd &= ~0x01;
-
-    // wait until FR, CR are cleared
-    while (port->cmd & 0x4000 || port->cmd & 0x8000) {
-        __asm__ volatile("hlt");
-    }
-
-    // clear FRE
-    port->cmd &= ~0x10;
-    puts_serial("stop_cmd end\r\n");
-}
+//static inline void stop_cmd(HBA_PORT *port)
+//{
+//    puts_serial("stop_cmd start\r\n");
+//    // clear ST
+//    port->cmd &= ~0x01;
+//
+//    // wait until FR, CR are cleared
+//    while (port->cmd & 0x4000 || port->cmd & 0x8000) {
+//        __asm__ volatile("hlt");
+//    }
+//
+//    // clear FRE
+//    port->cmd &= ~0x10;
+//    puts_serial("stop_cmd end\r\n");
+//}
 
 static inline void start_cmd(HBA_PORT *port)
 {
