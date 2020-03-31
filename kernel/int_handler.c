@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "util.h"
 #include "graphics.h"
+#include "task.h"
 #include "int_handler.h"
 #include "device/serial.h"
 
@@ -15,6 +16,8 @@ extern const pix_format_t blue;
  * ------------------------------------
  */
 uint64_t tick;
+extern uint64_t timer_period;
+extern uint64_t previous_interrupt;
 __attribute__((interrupt))
 void timer_handler(struct intr_frame *frame)
 {
@@ -24,6 +27,14 @@ void timer_handler(struct intr_frame *frame)
 
     if ((tick % 0x10) == 0) {
         printstrnum(400, 0, blue, white, "tick: ", tick);
+    }
+    /** 周期が来たらスケジューラを呼び出す
+     * 各種パラメータはint_handler.hで設定
+     */
+    if (tick > previous_interrupt + timer_period && tick > 90) {
+        previous_interrupt = tick;
+        puts_serial("scheduler start\r\n");
+        thread_scheduler();
     }
 }
 

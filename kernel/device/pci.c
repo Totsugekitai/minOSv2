@@ -7,7 +7,7 @@
 #define PCI_CONFIG_DATA     0xcfc
 
 // AHCI Address Base
-uint64_t *abar = 0;
+uint64_t *abar;
 
 uint16_t pci_config_read_byte(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
 {
@@ -128,13 +128,13 @@ void check_all_buses(void)
                 // if device found
                 if (config.vendor != 0xffff) {
                     print_device_info(bus, device, func, config);
-                }
-                // if AHCI found
-                if (config.class_code == 0x01 && config.subclass == 0x06) {
-                    abar = get_ahci_base_address(bus, device, func);
-                    puts_serial("AHCI device found!!!\r\n");
-                    putsp_serial("ABAR: ", abar);
-                    puts_serial("\r\n");
+                    // if AHCI found
+                    if (config.class_code == 0x01 && config.subclass == 0x06) {
+                        abar = get_ahci_base_address(bus, device, func);
+                        puts_serial("AHCI device found!!!\r\n");
+                        putsp_serial("ABAR: ", abar);
+                        puts_serial("\r\n");
+                    }
                 }
             }
         }
