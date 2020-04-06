@@ -10,23 +10,25 @@
 
 データ本体以外にも、メタデータと呼ばれる情報を付属させる。
 
-- 種類
-- 時刻情報
-- 権限情報
 - 名前
+- ID
+- 種類
 - ストレージデバイス上の位置
 - サイズ
+- 権限情報
+- 時刻情報
 
 ## インターフェース
 
 - ファイルの作成： `creat()`
-- ファイルの削除： `unlink()`
-- ファイルを開く： `open()`
-- ファイルを閉じる： `close()`
+- ファイルの削除： `delete()`
+- ファイルを探してメモリにムーブさせる： `open()`
+- メモリ上のファイルコンテンツをディスクに移動させる： `close()`
 - 開いたファイルからデータを読み出す： `read()`
 - 開いたファイルにデータを書き込む： `write()`
 - 開いたファイルの所定の位置に移動： `lseek()`
 - ファイルシステム依存の特殊な処理： `ioctl()`
+- ファイルの長さを変更する： `truncate()`
 
 ## inode
 
@@ -49,6 +51,74 @@
 | block 4 address |
 -------------------
 ```
+## ファイルシステムの実装
+
+### ファイルシステムの階層構造
+
+- application program
+- logical filee system
+- file-organization module
+- basic file system
+- I/O control
+- devices
+
+### デバイスドライバ
+
+I/O control layerでI/O deviceを管理する
+
+### basic file system
+
+デバイスドライバに情報を渡す。
+
+他にもメモリバッファやキャッシュの管理を行う。
+
+### file-organization module
+
+ファイルや論理アドレス、物理ブロックの解釈を行う。
+
+- logical block # -> physical block # のような変換
+- ディスク領域の開放、確保
+
+### logical file system
+
+メタデータを扱う
+
+- ファイル名をファイル番号・ファイルハンドル・位置に変換
+    - file control block(UNIXではinode)で管理する
+- ディレクトリの管理
+- 権限・ファイル保護
+
+## `ext2` ファイルシステムのメモ
+
+### `blocks`
+
+いくつかのセクタをひとまとめにしたもの。
+blockのサイズは1KiB,2KiB,4KiB,8KiBのいずれかで実装されている。
+
+### `block groups`
+
+複数のblockをまとめたもの。
+block groupsの情報はblock group descriptorにまとめられる。
+descriptorはsuperblockの直後に置かれる。
+
+block groupの最初の2blockはblock usage bitmapとinode usage bitmapに用いられる。
+ビットマップはblockとinodeの使用状況を記録する。
+各ビットマップは1blockなので、block groupの最大サイズはblockのサイズの8倍。
+
+### `directories`
+
+directoryはファイルシステムオブジェクトで、inodeを持つ。
+特別なファイルであり、各名前をinodeの番号に関連付けるレコードを保持している。
+
+### `inodes`
+
+inodeデータ構造はオブジェクトのデータとメタデータを含むファイルシステムブロックへのポインタを保持する、
+inodeデータ構造はinodeデータ構造へのポインタを保持することもある。
+
+### `superblocks`
+
+ファイルシステムの設定すべてを含むブロック。
+デバイスの先頭から1024byteの位置に置かれる。
 
 ## ジャーナリング
 
