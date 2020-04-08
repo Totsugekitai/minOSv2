@@ -311,6 +311,7 @@ typedef volatile struct tagHBA_CMD_TBL {
 
 #define READ_DMA_EXT 0x25
 #define WRITE_DMA_EXT 0x35
+#define AHCI_COUNT 512
 
 typedef struct tagCMD_PARAMS {
     uint8_t fis_type;   // fis type
@@ -325,7 +326,10 @@ typedef struct tagCMD_PARAMS {
 
 /* functions */
 void put_hba_memory_register(void);
-int read(HBA_PORT *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf);
 void check_ahci(void);
+void ahci_init(void);
+int probe_impl_port(HBA_PORT *port);
+int ahci_read(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, void *buf);
+int ahci_write(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, uint16_t *buf);
 
 #endif

@@ -2,6 +2,7 @@
 #include "../util.h"
 #include "serial.h"
 #include "ahci.h"
+#include "../fs/ext2.h"
 
 #define SATA_SIG_ATA 0x00000101   // SATA drive
 #define SATA_SIG_ATAPI 0xEB140101 // SATAPI drive
@@ -160,7 +161,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
  * This is MINIMAL initialization.
  * (10.1.2 System Software Specific Initialization)
  * */
-static inline void ahci_init(void)
+void ahci_init(void)
 {
     puts_serial("AHCI initialization start.\r\n");
     // initial HBA reset
@@ -270,7 +271,7 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 
 static inline void build_cmdheader(HBA_PORT *port, int slot, CMD_PARAMS *params)
 {
-    HBA_CMD_HEADER *cmd_list = ((HBA_CMD_HEADER *)port->clb + slot);
+    HBA_CMD_HEADER *cmd_list = ((HBA_CMD_HEADER *)(uint64_t)port->clb + slot);
     mymemset((void *)cmd_list, 0, 0x400);
     cmd_list->ctba = (uint32_t)CMD_TBL_BASE;
     cmd_list->ctbau = 0;
@@ -367,14 +368,14 @@ static inline void wait_pxci_clear(HBA_PORT *port)
     puts_serial("wait PxCI end\r\n");
 }
 
-int ahci_read_test(HBA_PORT *port, int portno, uint64_t start, uint16_t count, uint16_t *buf)
+int ahci_read(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, void *buf)
 {
     start_cmd(port);
     CMD_PARAMS params;
     params.fis_type = 0x27;
     params.cmd_type = READ_DMA_EXT;
     params.cfis_len = 5;
-    params.lba = (uint64_t *)start;
+    params.lba = start;
     params.count = count;
     params.dba = (uint64_t *)buf;
     params.w = 0;
@@ -386,14 +387,14 @@ int ahci_read_test(HBA_PORT *port, int portno, uint64_t start, uint16_t count, u
     return 1;
 }
 
-int ahci_write_test(HBA_PORT *port, int portno, uint64_t start, uint16_t count, uint16_t *buf)
+int ahci_write(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, uint16_t *buf)
 {
     start_cmd(port);
     CMD_PARAMS params;
     params.fis_type = 0x27;
     params.cmd_type = WRITE_DMA_EXT;
     params.cfis_len = 5;
-    params.lba = (uint64_t *)start;
+    params.lba = start;
     params.count = count;
     params.dba = (uint64_t *)buf;
     params.w = 1;
@@ -403,6 +404,26 @@ int ahci_write_test(HBA_PORT *port, int portno, uint64_t start, uint16_t count, 
     clear_ghc_is(portno);
     wait_pxci_clear(port);
     return 1;
+}
+
+int probe_impl_port(HBA_PORT *port)
+{
+    uint32_t pi = abar->pi;
+    int k = -1;
+    for (int i = 0; i < 32; i++) {
+        if ((pi & 1) == 1) {
+            k = i;
+            break;
+        } else {
+            pi >>= 1;
+        }
+    }
+    if (k == -1) {
+        puts_serial("implemented port not found\r\n");
+        return -1;
+    }
+    port = &abar->ports[k];
+    return k;
 }
 
 void check_ahci(void)
@@ -424,36 +445,23 @@ void check_ahci(void)
         puts_serial("implemented port not found\r\n");
         return;
     }
-    HBA_PORT *port= &abar->ports[k];
+    HBA_PORT *port = &abar->ports[k];
+    int portno = k;
 
-    uint16_t buf[512];
-    for (int i = 0; i < 512; i++) {
+    uint16_t buf[1024];
+    for (int i = 0; i < 1024; i++) {
         buf[i] = 0xbeef;
     }
 
-    ahci_read_test(port, 0, 0x0, 1, buf);
-    for (int i = 0; i < 256; i++) {
+    ahci_read(port, portno, 0x0, 3, buf);
+
+    for (int i = 0; i < 1024; i++) {
         putn_serial(buf[i]);
     }
     puts_serial("\r\n");
 
-    uint16_t buf1[512];
-    for (int i = 0; i < 512; i++) {
-        buf1[i] = 0xabcd;
-        //buf1[i] = 0;
-    }
+    puts_serial("check end\r\n");
 
-    put_port_status(port);
-    puts_serial("write start\r\n");
-    ahci_write_test(port, 0, 0x0, 1, buf1);
-    puts_serial("write end\r\n");
-
-    ahci_read_test(port, 0, 0x0, 1, buf);
-    for (int i = 0; i < 256; i++) {
-        putn_serial(buf[i]);
-    }
-    puts_serial("\r\n");
-
-    puts_serial("iroiro end\r\n");
+    ext2_sblock_check(port, portno);
 }
 

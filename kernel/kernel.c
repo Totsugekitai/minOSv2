@@ -27,6 +27,8 @@ void entry_point(bootinfo_t *binfo)
     check_all_buses();
     check_ahci();
 
+    halt();
+
     threads_init();
 
     schedule_period_init(5);

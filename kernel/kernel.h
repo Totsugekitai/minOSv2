@@ -11,6 +11,7 @@
 #include "device/serial.h"
 #include "device/pci.h"
 #include "device/ahci.h"
+#include "fs/ext2.h"
 
 #include "app.h"
 
