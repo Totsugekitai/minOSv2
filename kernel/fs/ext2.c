@@ -10,7 +10,7 @@ void ext2_sblock_check(HBA_PORT *port, int portno)
     //HBA_PORT *port = 0;
     //int portno = probe_impl_port(port);
 
-    ahci_read(port, portno, (uint64_t *)SBLOCK_DISK_OFF, SBLOCK_LENGTH / AHCI_COUNT, &sb);
+    ahci_read(port, portno, SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb);
 
     puts_serial("---------- ext2 filesystem super block parameter ----------\n");
     putsn_serial("s_inodes_count:      ", sb.s_inodes_count);

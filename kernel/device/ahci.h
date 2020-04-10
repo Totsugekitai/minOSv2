@@ -318,7 +318,7 @@ typedef struct tagCMD_PARAMS {
     uint8_t cmd_type;   // command type
     uint8_t cfis_len;
     uint64_t *ctba;     // command table base address
-    uint64_t *lba;      // logical block address
+    uint64_t lba;       // logical block address
     uint16_t count;     // block count (1 count = 512 byte)
     uint64_t *dba;      // data base address (physical address of data block aligned word)
     uint8_t w;
@@ -329,7 +329,7 @@ void put_hba_memory_register(void);
 void check_ahci(void);
 void ahci_init(void);
 int probe_impl_port(HBA_PORT *port);
-int ahci_read(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, void *buf);
-int ahci_write(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, uint16_t *buf);
+int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf);
+int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf);
 
 #endif

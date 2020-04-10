@@ -255,16 +255,15 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
     uint8_t *buf = (uint8_t *)params->dba;
     int i;
     for (i = 0; i < prdtl - 1; i++) {
-        table->prdt_entry[i].dba  = (uint32_t)buf;
+        table->prdt_entry[i].dba  = (uint32_t)(uint64_t)buf;
         table->prdt_entry[i].dbau = 0;
         table->prdt_entry[i].dbc = 8 * 1024 - 1;
         table->prdt_entry[i].i = 1; // notify interrupt
         buf += 8 * 1024; // 8K bytes
         count -= 16; // 16 sectors
     }
-
     // Last entry
-    table->prdt_entry[i].dba = (uint32_t)buf;
+    table->prdt_entry[i].dba = (uint32_t)(uint64_t)buf;
     table->prdt_entry[i].dbc = (count << 9) - 1;
     table->prdt_entry[i].i = 1;
 }
@@ -330,22 +329,6 @@ static inline void clear_ghc_is(int portno)
     puts_serial("clearing IS.IPS is finished\r\n");
 }
 
-//static inline void stop_cmd(HBA_PORT *port)
-//{
-//    puts_serial("stop_cmd start\r\n");
-//    // clear ST
-//    port->cmd &= ~0x01;
-//
-//    // wait until FR, CR are cleared
-//    while (port->cmd & 0x4000 || port->cmd & 0x8000) {
-//        __asm__ volatile("hlt");
-//    }
-//
-//    // clear FRE
-//    port->cmd &= ~0x10;
-//    puts_serial("stop_cmd end\r\n");
-//}
-
 static inline void start_cmd(HBA_PORT *port)
 {
     puts_serial("start_cmd start\r\n");
@@ -368,14 +351,14 @@ static inline void wait_pxci_clear(HBA_PORT *port)
     puts_serial("wait PxCI end\r\n");
 }
 
-int ahci_read(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, void *buf)
+int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf)
 {
     start_cmd(port);
     CMD_PARAMS params;
     params.fis_type = 0x27;
     params.cmd_type = READ_DMA_EXT;
     params.cfis_len = 5;
-    params.lba = start;
+    params.lba = start_lba;
     params.count = count;
     params.dba = (uint64_t *)buf;
     params.w = 0;
@@ -387,14 +370,14 @@ int ahci_read(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, void 
     return 1;
 }
 
-int ahci_write(HBA_PORT *port, int portno, uint64_t *start, uint16_t count, uint16_t *buf)
+int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf)
 {
     start_cmd(port);
     CMD_PARAMS params;
     params.fis_type = 0x27;
     params.cmd_type = WRITE_DMA_EXT;
     params.cfis_len = 5;
-    params.lba = start;
+    params.lba = start_lba;
     params.count = count;
     params.dba = (uint64_t *)buf;
     params.w = 1;
@@ -448,15 +431,17 @@ void check_ahci(void)
     HBA_PORT *port = &abar->ports[k];
     int portno = k;
 
-    uint16_t buf[1024];
-    for (int i = 0; i < 1024; i++) {
-        buf[i] = 0xbeef;
+    uint64_t buf[64];
+    for (int i = 0; i < 64; i++) {
+        buf[i] = 0xbeeeeeeeeeeeeeefull;
+        putn_serial(buf[i]);
     }
 
-    ahci_read(port, portno, 0x0, 3, buf);
+    ahci_read(port, portno, 2, 1, buf);
 
-    for (int i = 0; i < 1024; i++) {
+    for (int i = 0; i < 64; i++) {
         putn_serial(buf[i]);
+        puts_serial("\r\n");
     }
     puts_serial("\r\n");
 

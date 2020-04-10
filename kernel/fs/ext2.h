@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define SBLOCK_DISK_OFF 1024
+#define SBLOCK_DISK_LBA 2
 #define SBLOCK_LENGTH 1024
 
 // superblock of ext2
