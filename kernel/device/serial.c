@@ -64,6 +64,16 @@ void puts_serial(const char *s)
     io_sti();
 }
 
+void nputs_serial(const char *s, int n)
+{
+    io_cli();
+    for (int i = 0; i < n; i++) {
+        write_serial(s[i]);
+    }
+    write_serial('\r');
+    write_serial('\n');
+    io_sti();
+}
 void putn_serial(uint64_t n)
 {
     static const char hex[] = "0123456789abcdef";

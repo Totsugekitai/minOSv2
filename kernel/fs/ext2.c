@@ -47,6 +47,28 @@ void ext2_sblock_check(HBA_PORT *port, int portno)
     putsn_serial("s_feature_ro_compat: ", sb.s_feature_ro_compat);
     putsn_serial("s_uuid[0]:           ", sb.s_uuid[0]);
     putsn_serial("s_uuid[1]:           ", sb.s_uuid[1]);
+    puts_serial("s_volume_name:        ");
+    nputs_serial(sb.s_volume_name, 16);
+    puts_serial("s_last_mounted:       ");
+    nputs_serial(sb.s_last_mounted, 64);
     putsn_serial("s_algo_bitmap:       ", sb.s_algo_bitmap);
+    puts_serial("--- performance hints -------------------------------------\n");
+    putsn_serial("s_prealloc_blocks:   ", sb.s_prealloc_blocks);
+    putsn_serial("s_prealloc_dir_blocks:", sb.s_prealloc_dir_blocks);
+    puts_serial("--- journaling support ------------------------------------\n");
+    putsn_serial("s_journal_uuid[0]:   ", sb.s_journal_uuid[0]);
+    putsn_serial("s_journal_uuid[1]:   ", sb.s_journal_uuid[1]);
+    putsn_serial("s_journal_inum:      ", sb.s_journal_inum);
+    putsn_serial("s_journal_dev:       ", sb.s_journal_dev);
+    putsn_serial("s_last_orphan:       ", sb.s_last_orphan);
+    puts_serial("--- directory indexing support ----------------------------\n");
+    putsn_serial("s_hash_seed[0]:      ", sb.s_hash_seed[0]);
+    putsn_serial("s_hash_seed[1]:      ", sb.s_hash_seed[1]);
+    putsn_serial("s_hash_seed[2]:      ", sb.s_hash_seed[2]);
+    putsn_serial("s_hash_seed[3]:      ", sb.s_hash_seed[3]);
+    putsn_serial("s_def_hash_version:  ", sb.s_def_hash_version);
+    puts_serial("--- other options -----------------------------------------\n");
+    putsn_serial("s_default_mount_options:", sb.s_default_mount_options);
+    putsn_serial("s_first_meta_bg:     ", sb.s_first_meta_bg);
     puts_serial("-----------------------------------------------------------\n");
 }
