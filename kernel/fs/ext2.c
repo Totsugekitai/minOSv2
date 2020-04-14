@@ -72,3 +72,10 @@ void ext2_sblock_check(HBA_PORT *port, int portno)
     putsn_serial("s_first_meta_bg:     ", sb.s_first_meta_bg);
     puts_serial("-----------------------------------------------------------\n");
 }
+
+static void check_bg_dsc_ext2(HBA_PORT *port, int portno)
+{
+    struct bg_dsc_ext2 bgdsc[16];
+    ahci_read(port, portno, BG_GROUP_DSC_TBL_LBA, SBLOCK_LENGTH / AHCI_COUNT, bgdsc);
+    
+}

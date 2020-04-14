@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define SBLOCK_DISK_LBA 2
+#define BG_GROUP_DSC_TBL_LBA 3
 #define SBLOCK_LENGTH 1024
 
 // superblock of ext2
