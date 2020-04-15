@@ -389,8 +389,9 @@ int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, u
     return 1;
 }
 
-int probe_impl_port(HBA_PORT *port)
+struct port_and_portno probe_impl_port(void)
 {
+    struct port_and_portno p = { .port = 0, .portno = -1 };
     uint32_t pi = abar->pi;
     int k = -1;
     for (int i = 0; i < 32; i++) {
@@ -403,10 +404,12 @@ int probe_impl_port(HBA_PORT *port)
     }
     if (k == -1) {
         puts_serial("implemented port not found\r\n");
-        return -1;
+        return p;
     }
-    port = &abar->ports[k];
-    return k;
+    p.port = &abar->ports[k];
+    p.portno = k;
+    putsn_serial("impl port: ", k);
+    return p;
 }
 
 void check_ahci(void)
@@ -414,22 +417,7 @@ void check_ahci(void)
     ahci_init();    // AHCI initialization
     put_hba_memory_register();
 
-    uint32_t pi = abar->pi;
-    int k = -1;
-    for (int i = 0; i < 32; i++) {
-        if ((pi & 1) == 1) {
-            k = i;
-            break;
-        } else {
-            pi >>= 1;
-        }
-    }
-    if (k == -1) {
-        puts_serial("implemented port not found\r\n");
-        return;
-    }
-    HBA_PORT *port = &abar->ports[k];
-    int portno = k;
+    struct port_and_portno p = probe_impl_port();
 
     uint64_t buf[64];
     for (int i = 0; i < 64; i++) {
@@ -437,7 +425,7 @@ void check_ahci(void)
         putn_serial(buf[i]);
     }
 
-    ahci_read(port, portno, 2, 1, buf);
+    ahci_read(p.port, p.portno, 2, 1, buf);
 
     for (int i = 0; i < 64; i++) {
         putn_serial(buf[i]);
@@ -446,7 +434,5 @@ void check_ahci(void)
     puts_serial("\r\n");
 
     puts_serial("check end\r\n");
-
-    ext2_sblock_check(port, portno);
 }
 

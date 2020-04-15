@@ -3,14 +3,13 @@
 #include "../device/ahci.h"
 #include "../device/serial.h"
 
-void ext2_sblock_check(HBA_PORT *port, int portno)
+uint16_t block_size;
+
+static inline void ext2_check_sblock(void)
 {
     struct sblock_ext2 sb;
-
-    //HBA_PORT *port = 0;
-    //int portno = probe_impl_port(port);
-
-    ahci_read(port, portno, SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb);
+    struct port_and_portno p = probe_impl_port();
+    ahci_read(p.port, p.portno, SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb);
 
     puts_serial("---------- ext2 filesystem super block parameter ----------\n");
     putsn_serial("s_inodes_count:      ", sb.s_inodes_count);
@@ -73,9 +72,23 @@ void ext2_sblock_check(HBA_PORT *port, int portno)
     puts_serial("-----------------------------------------------------------\n");
 }
 
-static void check_bg_dsc_ext2(HBA_PORT *port, int portno)
+//static void ext2_check_bg_dsc(HBA_PORT *port, int portno)
+//{
+//    struct bg_dsc_ext2 bgdsc[16];
+//    ahci_read(port, portno, BG_GROUP_DSC_TBL_LBA, SBLOCK_LENGTH / AHCI_COUNT, bgdsc);
+//}
+
+void init_ext2(void)
 {
-    struct bg_dsc_ext2 bgdsc[16];
-    ahci_read(port, portno, BG_GROUP_DSC_TBL_LBA, SBLOCK_LENGTH / AHCI_COUNT, bgdsc);
-    
+    struct sblock_ext2 sb;
+    struct port_and_portno p = probe_impl_port();
+    ahci_read(p.port, p.portno, SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb);
+    block_size = (1024 << sb.s_log_block_size);
+    putsn_serial("block size: ", block_size);
+}
+
+void check_ext2(void)
+{
+    init_ext2();
+    ext2_check_sblock();
 }

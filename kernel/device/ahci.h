@@ -324,11 +324,15 @@ typedef struct tagCMD_PARAMS {
     uint8_t w;
 } CMD_PARAMS;
 
+struct port_and_portno {
+    HBA_PORT *port;
+    int portno;
+};
 /* functions */
 void put_hba_memory_register(void);
 void check_ahci(void);
 void ahci_init(void);
-int probe_impl_port(HBA_PORT *port);
+struct port_and_portno probe_impl_port(void);
 int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf);
 int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf);
 

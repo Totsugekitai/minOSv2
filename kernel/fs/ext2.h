@@ -76,7 +76,6 @@ struct bg_dsc_ext2 {
     uint32_t bg_reserved[3];    // reserved
 };
 
-#include "../device/ahci.h"
-void ext2_sblock_check(HBA_PORT *port, int portno);
+void check_ext2(void);
 
 #endif
