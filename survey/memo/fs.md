@@ -114,11 +114,38 @@ directoryはファイルシステムオブジェクトで、inodeを持つ。
 
 inodeデータ構造はオブジェクトのデータとメタデータを含むファイルシステムブロックへのポインタを保持する、
 inodeデータ構造はinodeデータ構造へのポインタを保持することもある。
+最初の(どこの？)12ブロックへのポインタがあり、その12ブロックはファイルのデータを含んでいるらしい。
+(図に起こしたほうが良さそう)
 
 ### `superblocks`
 
 ファイルシステムの設定すべてを含むブロック。
 デバイスの先頭から1024byteの位置に置かれる。
+
+### `symbolic link`
+シンボリックリンクは単純にtext stringを保持しており、OSによって解釈され処理される。
+
+### block group descriptor table
+ボリュームがどのようにblock groupに分割されるか、各block groupのどこにbitmapやinode tableがあるかを保管する。
+
+### Locating an Inode
+inode number は inode table のインデックスである。
+inode table のサイズはフォーマット時に固定される。
+大きい inode table が作成された場合には、すべての block group に均等に分割される。
+
+#### パラメータの計算
+s_inodes_per_group を用いて block group ごとにいくつの inode が定義されているか確認できる。
+inode 1 は first inode であることがわかっているので、次のように計算する。
+
+```
+block group = (inode - 1) / s_inodes_per_group
+```
+
+block が特定できれば、 local inode index は次のように計算できる。
+
+```
+local inode index = (inode - 1) % s_inodes_per_group
+```
 
 ## ジャーナリング
 

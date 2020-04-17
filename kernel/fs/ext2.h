@@ -76,6 +76,54 @@ struct bg_dsc_ext2 {
     uint32_t bg_reserved[3];    // reserved
 };
 
+// Inode structure
+struct inode_ext2 {
+    uint16_t i_mode; // format of the file and access rights
+    uint16_t i_uid;
+    uint32_t i_size; // file size in bytes
+    uint32_t i_atime;
+    uint32_t i_ctime;
+    uint32_t i_mtime;
+    uint32_t i_dtime;
+    uint16_t i_gid;
+    uint16_t i_links_count; // how many times this inode is linked
+    uint32_t i_blocks; // total numbe of blocks reserved to contain the data of this inode
+    uint32_t i_flags;
+    uint32_t i_osd1; // OS dependent value
+    /*
+      block numbers pointing to the blocks containing the data for this inode.
+      The first 12 blocks are direct blocks.
+      The 13th entry is the block number of the first indirect block.
+      The 14th entry is the block number of the first doubly-indirect block.
+      The 15th entry is the block number of the first triply-indirect block.
+     */
+    uint32_t i_block[15];
+    uint32_t i_generation; // file version (used by NFS)
+    uint32_t i_file_acl; // extended attributes
+    uint32_t i_dir_acl;  // In rev 1, contains the high 32bits of the 64bit file size
+    uint32_t i_faddr; // the location of the file fragment
+    /*
+      OS dependent value
+      In Linux:
+      Offset Size Description
+      0      1    l_i_flag
+      1      1    l_i_fsize
+      2      2    reserved
+      4      2    l_i_uid_high
+      6      2    l_i_gid_high
+      8      4    reserved
+     */
+    uint32_t i_osd2[3];
+};
+
+struct linked_directory_entry_ext2 {
+    uint32_t inode;
+    uint16_t rec_len;
+    uint8_t name_len;
+    uint8_t file_type;
+    char name[255];
+};
+
 void check_ext2(void);
 
 #endif
