@@ -19,6 +19,8 @@ void entry_point(bootinfo_t *binfo)
     init_idt();
     init_pic();
 
+    init_kheap();
+
     paint_background(white);
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
 
@@ -32,8 +34,12 @@ void entry_point(bootinfo_t *binfo)
 
     schedule_period_init(5);
 
-    uint64_t stack0[STACK_LENGTH];
-    uint64_t stack1[STACK_LENGTH];
+    //uint64_t stack0[STACK_LENGTH];
+    //uint64_t stack1[STACK_LENGTH];
+    uint64_t *stack0 = (uint64_t *)kmalloc(0x1000);
+    uint64_t *stack1 = (uint64_t *)kmalloc(0x1000);
+    putsp_serial("malloc0: ", stack0);
+    putsp_serial("malloc1: ", stack1);
     struct thread thread0 = thread_gen(task_shikaku_aka, 0, 0, stack0);
     struct thread thread1 = thread_gen(task_shikaku_ao, 0, 0, stack1);
 
