@@ -311,21 +311,29 @@ typedef volatile struct tagHBA_CMD_TBL {
 
 #define READ_DMA_EXT 0x25
 #define WRITE_DMA_EXT 0x35
+#define AHCI_COUNT 512
 
 typedef struct tagCMD_PARAMS {
     uint8_t fis_type;   // fis type
     uint8_t cmd_type;   // command type
     uint8_t cfis_len;
     uint64_t *ctba;     // command table base address
-    uint64_t *lba;      // logical block address
+    uint64_t lba;       // logical block address
     uint16_t count;     // block count (1 count = 512 byte)
     uint64_t *dba;      // data base address (physical address of data block aligned word)
     uint8_t w;
 } CMD_PARAMS;
 
+struct port_and_portno {
+    HBA_PORT *port;
+    int portno;
+};
 /* functions */
 void put_hba_memory_register(void);
-int read(HBA_PORT *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf);
 void check_ahci(void);
+void ahci_init(void);
+struct port_and_portno probe_impl_port(void);
+int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf);
+int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf);
 
 #endif

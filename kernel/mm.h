@@ -9,8 +9,17 @@ struct pgtable_info {
     int pgtable_size;
 };
 
+struct malloc_header {
+    struct malloc_header *next;
+    uint64_t size; // This param's unit is block.
+};
+
 void init_gdt(void);
 extern void load_pgtable(uint64_t *pgtable);
 void init_kpaging(void);
+
+void init_kheap(void);
+void *kmalloc(int size);
+void kfree(void *ptr);
 
 #endif

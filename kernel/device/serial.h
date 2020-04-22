@@ -25,6 +25,7 @@
 void init_pic(void);
 void init_serial(void);
 void puts_serial(const char *s);
+void nputs_serial(const char *s, int n);
 void putn_serial(uint64_t n);
 void putsn_serial(const char *s, uint64_t n);
 void putsp_serial(const char *s, const void *p);

@@ -18,6 +18,7 @@ OBJS		= kernel.o \
 			  device/pci.o \
 			  device/ahci.o \
 			  app.o \
+			  fs/ext2.o \
 
 .PHONY: clean
 
@@ -37,3 +38,4 @@ int_handler.o: int_handler.c
 clean:
 	@rm -f *.o *.elf *.map
 	@rm -f device/*.o
+	@rm -f fs/*.o
