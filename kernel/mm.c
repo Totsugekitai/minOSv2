@@ -82,3 +82,75 @@ void init_kpaging(void)
     load_pgtable(start_addr);
 }
 
+#define BLK_SIZE (sizeof(struct malloc_header))
+struct malloc_header base = { 0, 0 };
+#define HEAP_SIZE (0x400000)
+struct malloc_header kheap[HEAP_SIZE]; // heap area
+struct malloc_header *freep = 0;
+
+void init_kheap(void)
+{
+    kheap[0].next = &base;
+    kheap[0].size = HEAP_SIZE;
+    base.next = &kheap[0];
+    base.size = 0;
+}
+
+void *kmalloc(int size)
+{
+    uint64_t nunits = ((size + sizeof(struct malloc_header) - 1) / sizeof(struct malloc_header)) + 1;
+
+    // search free point
+    struct malloc_header *p, *q;
+    if ((q = freep) == 0) {
+        freep = q = &base;
+        base.size = 0;
+        base.next = kheap;
+        base.next->size = HEAP_SIZE / sizeof(struct malloc_header);
+        base.next->next = &base;
+    }
+    for (p = q->next;; q = p, p = p->next) {
+        if (p->size >= nunits) {
+            if (p->size == nunits) {
+                q->next = p->next;
+            } else {
+                p->size -= nunits;
+                p += p->size;
+                p->size = nunits;
+            }
+            freep = q;
+            return ((void *)(p + 1));
+        }
+        if (p == freep) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+void kfree(void *ptr)
+{
+    struct malloc_header *q;
+    struct malloc_header *p = (struct malloc_header *)ptr - 1;
+    for (q = freep; !(p > q && p < q->next); q = q->next) {
+        if (q >= q->next && (p > q || p < q->next)) {
+            break;
+        }
+    }
+
+    if (p + p->size == q->next) {
+        p->size += q->next->size;
+        p->next = q->next->next;
+    } else {
+        p->next = q->next;
+    }
+
+    if (q + q->size == p) {
+        q->size += p->size;
+        q->next = p->next;
+    } else {
+        q->next = p;
+    }
+
+    freep = q;
+}
