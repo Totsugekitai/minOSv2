@@ -31,9 +31,9 @@ void timer_handler(struct intr_frame *frame)
     /** 周期が来たらスケジューラを呼び出す
      * 各種パラメータはint_handler.hで設定
      */
-    if (tick > previous_interrupt + timer_period && tick > 900) {
+    if (tick > previous_interrupt + timer_period && tick > 90) {
         previous_interrupt = tick;
-        puts_serial("scheduler start\r\n");
+        puts_serial("scheduler\r\n");
         thread_scheduler();
     }
 }

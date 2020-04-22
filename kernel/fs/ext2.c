@@ -108,85 +108,90 @@ void ext2_check_inode_bitmap(uint32_t inode_bitmap_location)
 
 void ext2_check_inode_table(uint32_t inode_table_location, uint32_t inodes_per_group)
 {
-    struct inode_ext2 inodes[inodes_per_group];
-    char block[1024];
-    struct port_and_portno p = probe_impl_port();
-    puts_serial("========== inodes ==========\r\n");
-    for (uint32_t i = 0; i < inodes_per_group; i++) {
-        ahci_read(p.port, p.portno, (inode_table_location + i) * 2, BLOCK, block);
-        struct inode_ext2 *inode = (struct inode_ext2 *)block;
-        inodes[i] = *inode;
-        if (inodes[i].i_mode & 0x4000) {
-            putsn_serial("--------- inode number: ", i);
-            putsn_serial("i_mode: ", inodes[i].i_mode);
-            putsn_serial("i_uid: ", inodes[i].i_uid);
-            putsn_serial("i_size: ", inodes[i].i_size);
-            putsn_serial("i_atime: ", inodes[i].i_atime);
-            putsn_serial("i_ctime: ", inodes[i].i_ctime);
-            putsn_serial("i_mtime: ", inodes[i].i_mtime);
-            putsn_serial("i_dtime: ", inodes[i].i_dtime);
-            putsn_serial("i_gid: ", inodes[i].i_gid);
-            putsn_serial("i_links_count: ", inodes[i].i_links_count);
-            putsn_serial("i_blocks: ", inodes[i].i_blocks);
-            putsn_serial("i_flags: ", inodes[i].i_flags);
-            putsn_serial("i_osd1: ", inodes[i].i_osd1);
-            putsn_serial("i_block[0]: ", inodes[i].i_block[0]);
-            putsn_serial("i_block[1]: ", inodes[i].i_block[1]);
-            putsn_serial("i_block[2]: ", inodes[i].i_block[2]);
-            putsn_serial("i_block[3]: ", inodes[i].i_block[3]);
-            putsn_serial("i_block[4]: ", inodes[i].i_block[4]);
-            putsn_serial("i_block[5]: ", inodes[i].i_block[5]);
-            putsn_serial("i_block[6]: ", inodes[i].i_block[6]);
-            putsn_serial("i_block[7]: ", inodes[i].i_block[7]);
-            putsn_serial("i_block[8]: ", inodes[i].i_block[8]);
-            putsn_serial("i_block[9]: ", inodes[i].i_block[9]);
-            putsn_serial("i_block[10]: ", inodes[i].i_block[10]);
-            putsn_serial("i_block[11]: ", inodes[i].i_block[11]);
-            putsn_serial("i_block[12]: ", inodes[i].i_block[12]);
-            putsn_serial("i_block[13]: ", inodes[i].i_block[13]);
-            putsn_serial("i_block[14]: ", inodes[i].i_block[14]);
-            putsn_serial("i_generation: ", inodes[i].i_generation);
-            putsn_serial("i_file_acl: ", inodes[i].i_file_acl);
-            putsn_serial("i_dir_acl: ", inodes[i].i_dir_acl);
-            putsn_serial("i_faddr: ", inodes[i].i_faddr);
-        }
+    //struct inode_ext2 inodes[inodes_per_group];
+    //char block[1024];
+    //struct port_and_portno p = probe_impl_port();
+    uint32_t inodes_per_block = BLOCK / sizeof(struct inode_ext2);
+    uint32_t nblock_inode_table = inodes_per_group / inodes_per_block;
+    if (inodes_per_group % inodes_per_block) {
+        nblock_inode_table++;
     }
+    puts_serial("========== inodes ==========\r\n");
+    for (uint32_t i = 0; i < nblock_inode_table; i++) {
+        struct inode_ext2 inode[8];
+        ahci_read_byte(inode_table_location * 2, BLOCK, &inode, sizeof(struct inode_ext2));
+        //ahci_read(p.port, p.portno, (inode_table_location + i) * 2, BLOCK, block);
+        //struct inode_ext2 *inode = (struct inode_ext2 *)block;
+        //inodes[i] = *inode;
+        for (unsigned long j = 0; j < inodes_per_block; j++) {
+            putsn_serial("--------- inode number: ", i);
+            putsn_serial("i_mode:        ", inode[j].i_mode);
+            putsn_serial("i_uid:         ", inode[j].i_uid);
+            putsn_serial("i_size:        ", inode[j].i_size);
+            putsn_serial("i_atime:       ", inode[j].i_atime);
+            putsn_serial("i_ctime:       ", inode[j].i_ctime);
+            putsn_serial("i_mtime:       ", inode[j].i_mtime);
+            putsn_serial("i_dtime:       ", inode[j].i_dtime);
+            putsn_serial("i_gid:         ", inode[j].i_gid);
+            putsn_serial("i_links_count: ", inode[j].i_links_count);
+            putsn_serial("i_blocks:      ", inode[j].i_blocks);
+            putsn_serial("i_flags:       ", inode[j].i_flags);
+            putsn_serial("i_osd1:        ", inode[j].i_osd1);
+            putsn_serial("i_block[0]:    ", inode[j].i_block[0]);
+            putsn_serial("i_block[1]:    ", inode[j].i_block[1]);
+            putsn_serial("i_block[2]:    ", inode[j].i_block[2]);
+            putsn_serial("i_block[3]:    ", inode[j].i_block[3]);
+            putsn_serial("i_block[4]:    ", inode[j].i_block[4]);
+            putsn_serial("i_block[5]:    ", inode[j].i_block[5]);
+            putsn_serial("i_block[6]:    ", inode[j].i_block[6]);
+            putsn_serial("i_block[7]:    ", inode[j].i_block[7]);
+            putsn_serial("i_block[8]:    ", inode[j].i_block[8]);
+            putsn_serial("i_block[9]:    ", inode[j].i_block[9]);
+            putsn_serial("i_block[10]:   ", inode[j].i_block[10]);
+            putsn_serial("i_block[11]:   ", inode[j].i_block[11]);
+            putsn_serial("i_block[12]:   ", inode[j].i_block[12]);
+            putsn_serial("i_block[13]:   ", inode[j].i_block[13]);
+            putsn_serial("i_block[14]:   ", inode[j].i_block[14]);
+            putsn_serial("i_generation:  ", inode[j].i_generation);
+            putsn_serial("i_file_acl:    ", inode[j].i_file_acl);
+            putsn_serial("i_dir_acl:     ", inode[j].i_dir_acl);
+            putsn_serial("i_faddr:       ", inode[j].i_faddr);
+        }
+            }
     puts_serial("=======================================\r\n");
 }
 
 void ext2_check_rootdir_inode(uint32_t inode_table_location)
 {
-    char block[1024];
-    struct port_and_portno p = probe_impl_port();
-    ahci_read(p.port, p.portno, inode_table_location * BLOCK, BLOCK, &block);
-    struct inode_ext2 *root_inode = &((struct inode_ext2 *)block)[1];
-    putsn_serial("i_mode:        ", root_inode->i_mode);
-    putsn_serial("i_uid:         ", root_inode->i_uid);
-    putsn_serial("i_size:        ", root_inode->i_size);
-    putsn_serial("i_atime:       ", root_inode->i_atime);
-    putsn_serial("i_ctime:       ", root_inode->i_ctime);
-    putsn_serial("i_mtime:       ", root_inode->i_mtime);
-    putsn_serial("i_dtime:       ", root_inode->i_dtime);
-    putsn_serial("i_gid:         ", root_inode->i_gid);
-    putsn_serial("i_links_count: ", root_inode->i_links_count);
-    putsn_serial("i_blocks:      ", root_inode->i_blocks);
-    putsn_serial("i_flags:       ", root_inode->i_flags);
-    putsn_serial("i_osd1:        ", root_inode->i_osd1);
-    putsn_serial("i_block[0]:    ", root_inode->i_block[0]);
-    putsn_serial("i_block[1]:    ", root_inode->i_block[1]);
-    putsn_serial("i_block[2]:    ", root_inode->i_block[2]);
-    putsn_serial("i_block[3]:    ", root_inode->i_block[3]);
-    putsn_serial("i_block[4]:    ", root_inode->i_block[4]);
-    putsn_serial("i_block[5]:    ", root_inode->i_block[5]);
-    putsn_serial("i_block[6]:    ", root_inode->i_block[6]);
-    putsn_serial("i_block[7]:    ", root_inode->i_block[7]);
-    putsn_serial("i_block[8]:    ", root_inode->i_block[8]);
-    putsn_serial("i_block[9]:    ", root_inode->i_block[9]);
-    putsn_serial("i_block[10]:   ", root_inode->i_block[10]);
-    putsn_serial("i_block[11]:   ", root_inode->i_block[11]);
-    putsn_serial("i_block[12]:   ", root_inode->i_block[12]);
-    putsn_serial("i_block[13]:   ", root_inode->i_block[13]);
-    putsn_serial("i_block[14]:   ", root_inode->i_block[14]);
+    struct inode_ext2 root_inode[2];
+    ahci_read_byte(inode_table_location * BLOCK, BLOCK, &root_inode, sizeof(struct inode_ext2) * 2);
+    putsn_serial("i_mode:        ", root_inode[1].i_mode);
+    putsn_serial("i_uid:         ", root_inode[1].i_uid);
+    putsn_serial("i_size:        ", root_inode[1].i_size);
+    putsn_serial("i_atime:       ", root_inode[1].i_atime);
+    putsn_serial("i_ctime:       ", root_inode[1].i_ctime);
+    putsn_serial("i_mtime:       ", root_inode[1].i_mtime);
+    putsn_serial("i_dtime:       ", root_inode[1].i_dtime);
+    putsn_serial("i_gid:         ", root_inode[1].i_gid);
+    putsn_serial("i_links_count: ", root_inode[1].i_links_count);
+    putsn_serial("i_blocks:      ", root_inode[1].i_blocks);
+    putsn_serial("i_flags:       ", root_inode[1].i_flags);
+    putsn_serial("i_osd1:        ", root_inode[1].i_osd1);
+    putsn_serial("i_block[0]:    ", root_inode[1].i_block[0]);
+    putsn_serial("i_block[1]:    ", root_inode[1].i_block[1]);
+    putsn_serial("i_block[2]:    ", root_inode[1].i_block[2]);
+    putsn_serial("i_block[3]:    ", root_inode[1].i_block[3]);
+    putsn_serial("i_block[4]:    ", root_inode[1].i_block[4]);
+    putsn_serial("i_block[5]:    ", root_inode[1].i_block[5]);
+    putsn_serial("i_block[6]:    ", root_inode[1].i_block[6]);
+    putsn_serial("i_block[7]:    ", root_inode[1].i_block[7]);
+    putsn_serial("i_block[8]:    ", root_inode[1].i_block[8]);
+    putsn_serial("i_block[9]:    ", root_inode[1].i_block[9]);
+    putsn_serial("i_block[10]:   ", root_inode[1].i_block[10]);
+    putsn_serial("i_block[11]:   ", root_inode[1].i_block[11]);
+    putsn_serial("i_block[12]:   ", root_inode[1].i_block[12]);
+    putsn_serial("i_block[13]:   ", root_inode[1].i_block[13]);
+    putsn_serial("i_block[14]:   ", root_inode[1].i_block[14]);
     if ((root_inode->i_mode & 0x4000) && !(root_inode->i_mode & 0x2000)) {
         puts_serial("This is directory\r\n");
     } else {
@@ -204,13 +209,15 @@ void init_ext2(void)
     putsn_serial("block size: ", block_size);
 }
 
-void check_ext2(void)
+void check_ext2(int argc, char **argv)
 {
+    (void)argc;
+    (void)argv;
     init_ext2();
     struct sblock_ext2 sb;
     ext2_check_sblock(&sb);
     struct bg_dsc_ext2 bg = ext2_check_bg_dsc();
-    ext2_check_inode_bitmap(bg.bg_inode_bitmap);
+    //ext2_check_inode_bitmap(bg.bg_inode_bitmap);
     //ext2_check_inode_table(bg.bg_inode_table, sb.s_inodes_per_group);
     ext2_check_rootdir_inode(bg.bg_inode_table);
 }

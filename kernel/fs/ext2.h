@@ -124,6 +124,6 @@ struct linked_directory_entry_ext2 {
     char name[255];
 };
 
-void check_ext2(void);
+void check_ext2(int argc, char **argv);
 
 #endif

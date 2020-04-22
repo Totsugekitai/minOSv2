@@ -33,7 +33,7 @@ extern void switch_context(uint64_t **current_rsp, uint64_t *next_rsp);
 void threads_init(void);
 void thread_stack_init(struct thread *thread);
 void thread_run(struct thread *thread);
-struct thread thread_gen(void (*func)(int, char**), int argc, char **argv, uint64_t *stack);
+struct thread thread_gen(void (*func)(int, char**), int argc, char **argv);
 void schedule_period_init(uint64_t milli_sec);
 void thread_scheduler(void);
 

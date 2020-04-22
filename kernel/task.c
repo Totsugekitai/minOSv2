@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "task.h"
+#include "mm.h"
 #include "device/serial.h"
 
 extern uint64_t tick;
@@ -61,33 +62,33 @@ void thread_run(struct thread *thread)
 static void thread_end(int thread_index)
 {
     threads[thread_index]->state = DEAD;    // stateはDEADにする
+    puts_serial("THREAD END!!\r\n");
 }
 
 static void thread_exec(struct thread *thread)
 {
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
     thread_end(thread->index);
-    //minfree(thread->stack);
+    kfree(thread->stack);
     thread_scheduler();
 }
 
 /** スレッドの生成
  * thread構造体の初期化とスタックの初期化を行う
  */
-struct thread thread_gen(void (*func)(int, char**), int argc, char **argv, uint64_t *stack)
+struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
 {
     struct thread thread;
 
-    //thread.stack = (uint64_t *)minmalloc(STACK_LENGTH);
-    thread.stack = stack;
+    thread.stack = (uint64_t *)kmalloc(STACK_LENGTH);
     thread.rsp = (uint64_t *)(thread.stack + STACK_LENGTH);
     thread.rip = (uint64_t *)thread_exec;
     thread.func_info.func = func;
     thread.func_info.argc = argc;
     thread.func_info.argv = argv;
 
-    putsn_serial("thread stack bottom: ", (uint64_t)thread.stack + STACK_LENGTH);
-    putsp_serial("thread rsp: ", thread.rsp);
+    //putsn_serial("thread stack bottom: ", (uint64_t)thread.stack + STACK_LENGTH);
+    //putsp_serial("thread rsp: ", thread.rsp);
 
     return thread;
 }
@@ -114,12 +115,12 @@ void thread_scheduler(void)
     }
 
     // save previous thread's rip to struct thread
-    putsn_serial("next thread index: ", current_index);
-    putsp_serial("next start rsp: ", threads[current_index]->rsp);
-    putsp_serial("next start func address: ", (uint64_t *)(threads[current_index]->func_info.func));
-    puts_serial("\r\n");
-    puts_serial("dispatch start\r\n");
-    puts_serial("\r\n");
+    //putsn_serial("next thread index: ", current_index);
+    //putsp_serial("next start rsp: ", threads[current_index]->rsp);
+    //putsp_serial("next start func address: ", (uint64_t *)(threads[current_index]->func_info.func));
+    //puts_serial("\r\n");
+    //puts_serial("dispatch start\r\n");
+    //puts_serial("\r\n");
 
     switch_context(&threads[old_thread_index]->rsp, threads[current_index]->rsp);
 }
