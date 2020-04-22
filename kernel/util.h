@@ -13,6 +13,7 @@ extern uint32_t io_in32(uint16_t port);
 extern void io_out32(uint16_t port, uint32_t val);
 uint64_t mypow(uint64_t num, uint64_t p);
 void *mymemset(void *buf, int ch, int n);
+void *memcpy(void *buf1, const void *buf2, unsigned long n);
 void init_bss(void);
 
 #endif

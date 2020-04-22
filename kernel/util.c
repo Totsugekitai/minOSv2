@@ -41,6 +41,16 @@ void *mymemset(void *buf, int ch, int n)
     return (void *)b;
 }
 
+void *memcpy(void *buf1, const void *buf2, unsigned long n)
+{
+    char *c1 = (char *)buf1;
+    char *c2 = (char *)buf2;
+    for (unsigned long i = 0; i < n; i++) {
+        c1[i] = c2[i];
+    }
+    return buf1;
+}
+
 extern uint64_t __bss_start, __bss_end;
 void init_bss(void)
 {
