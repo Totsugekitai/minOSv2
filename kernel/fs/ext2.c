@@ -187,7 +187,7 @@ void ext2_check_rootdir_inode(uint32_t inode_table_location)
     putsn_serial("i_block[12]:   ", root_inode[1].i_block[12]);
     putsn_serial("i_block[13]:   ", root_inode[1].i_block[13]);
     putsn_serial("i_block[14]:   ", root_inode[1].i_block[14]);
-    if ((root_inode->i_mode & 0x4000) && !(root_inode->i_mode & 0x2000)) {
+    if (!(root_inode[1].i_mode & 0xb000) && (root_inode[1].i_mode & 0x4000)) {
         puts_serial("This is directory\r\n");
     } else {
         puts_serial("This is not directory\r\n");

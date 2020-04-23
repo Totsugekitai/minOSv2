@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "util.h"
 
 // ココらへんの単純な関数はアトでマクロにするかも
 void halt(void)
@@ -65,3 +66,46 @@ void init_bss(void)
         (&__bss_start)[i] = 0;
     }
 }
+
+void flush_queue_char(struct queue_char *que)
+{
+    for (int i = 0; i < QUEUE_SIZE; i++) {
+        que->data[i] = 0;
+    }
+    que->head = 0;
+    que->num = 0;
+}
+
+int queue_char_isempty(struct queue_char *que)
+{
+    return !que->num;
+}
+
+int queue_char_isfull(struct queue_char *que)
+{
+    return que->num == QUEUE_SIZE;
+}
+
+int enqueue_char(struct queue_char *que, char c)
+{
+    if (que->num < QUEUE_SIZE) {
+        que->data[(que->head + que->num) % QUEUE_SIZE] = c;
+        que->num++;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int dequeue_char(struct queue_char *que, char *c)
+{
+    if (que->num > 0) {
+        *c = que->data[que->head];
+        que->head = (que->head + 1) % QUEUE_SIZE;
+        que->num--;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+

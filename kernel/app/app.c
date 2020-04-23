@@ -1,7 +1,7 @@
 #include <stdint.h>
-#include "graphics.h"
-#include "util.h"
-#include "device/serial.h"
+#include "../graphics.h"
+#include "../util.h"
+#include "../device/serial.h"
 
 extern const pix_format_t black;
 extern const pix_format_t white;

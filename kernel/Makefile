@@ -18,8 +18,8 @@ OBJS = kernel.o \
 	  device/serial.o \
 	  device/pci.o \
 	  device/ahci.o \
-	  app.o \
 	  fs/ext2.o \
+	  app/app.o app/console.o \
 
 .PHONY: clean
 

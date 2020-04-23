@@ -13,7 +13,7 @@
 #include "device/ahci.h"
 #include "fs/ext2.h"
 
-#include "app.h"
+#include "app/app.h"
 
 #endif
 

@@ -5,6 +5,13 @@
 
 #define UNUSED(x) ((void)x)
 
+#define QUEUE_SIZE (1600)
+struct queue_char {
+    int head;
+    int num;
+    char data[QUEUE_SIZE];  // 80 char x 20 line
+};
+
 void halt(void);
 void busy_loop(void);
 void io_cli(void);
