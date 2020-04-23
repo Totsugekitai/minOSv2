@@ -39,3 +39,4 @@ clean:
 > @rm -f *.o *.elf *.map
 > @rm -f device/*.o
 > @rm -f fs/*.o
+> @rm -f app/*.o
