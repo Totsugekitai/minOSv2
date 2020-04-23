@@ -2,6 +2,7 @@
 #include "ext2.h"
 #include "../device/ahci.h"
 #include "../device/serial.h"
+#include "../util.h"
 
 uint16_t block_size;
 uint32_t s_first_ino;
@@ -108,10 +109,7 @@ void ext2_check_inode_bitmap(uint32_t inode_bitmap_location)
 
 void ext2_check_inode_table(uint32_t inode_table_location, uint32_t inodes_per_group)
 {
-    //struct inode_ext2 inodes[inodes_per_group];
-    //char block[1024];
-    //struct port_and_portno p = probe_impl_port();
-    uint32_t inodes_per_block = BLOCK / sizeof(struct inode_ext2);
+    uint32_t inodes_per_block = block_size / sizeof(struct inode_ext2);
     uint32_t nblock_inode_table = inodes_per_group / inodes_per_block;
     if (inodes_per_group % inodes_per_block) {
         nblock_inode_table++;
@@ -120,11 +118,8 @@ void ext2_check_inode_table(uint32_t inode_table_location, uint32_t inodes_per_g
     for (uint32_t i = 0; i < nblock_inode_table; i++) {
         struct inode_ext2 inode[8];
         ahci_read_byte(inode_table_location * 2, BLOCK, &inode, sizeof(struct inode_ext2));
-        //ahci_read(p.port, p.portno, (inode_table_location + i) * 2, BLOCK, block);
-        //struct inode_ext2 *inode = (struct inode_ext2 *)block;
-        //inodes[i] = *inode;
         for (unsigned long j = 0; j < inodes_per_block; j++) {
-            putsn_serial("--------- inode number: ", i);
+            putsn_serial("--------- inode number: ", i + j);
             putsn_serial("i_mode:        ", inode[j].i_mode);
             putsn_serial("i_uid:         ", inode[j].i_uid);
             putsn_serial("i_size:        ", inode[j].i_size);
@@ -202,8 +197,7 @@ void ext2_check_rootdir_inode(uint32_t inode_table_location)
 void init_ext2(void)
 {
     struct sblock_ext2 sb;
-    struct port_and_portno p = probe_impl_port();
-    ahci_read(p.port, p.portno, SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb);
+    ahci_read_byte(SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb, sizeof(struct sblock_ext2));
     block_size = (1024 << sb.s_log_block_size);
     s_first_ino = sb.s_first_ino;
     putsn_serial("block size: ", block_size);
@@ -211,13 +205,13 @@ void init_ext2(void)
 
 void check_ext2(int argc, char **argv)
 {
-    (void)argc;
-    (void)argv;
+    UNUSED(argc);
+    UNUSED(argv);
     init_ext2();
     struct sblock_ext2 sb;
     ext2_check_sblock(&sb);
     struct bg_dsc_ext2 bg = ext2_check_bg_dsc();
     //ext2_check_inode_bitmap(bg.bg_inode_bitmap);
-    //ext2_check_inode_table(bg.bg_inode_table, sb.s_inodes_per_group);
+    ext2_check_inode_table(bg.bg_inode_table, sb.s_inodes_per_group);
     ext2_check_rootdir_inode(bg.bg_inode_table);
 }

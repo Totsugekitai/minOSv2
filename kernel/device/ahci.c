@@ -80,7 +80,7 @@ static inline void hba_reset(void)
     // during HR = 1, polling
     while (abar->ghc & 0x1) {
         puts_serial(".");
-        __asm__ volatile("hlt");
+        stihlt();
     }
     puts_serial("\r\n");
 }
@@ -120,8 +120,9 @@ static inline void clear_ports_serr(uint32_t pi_list)
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
             ports[i].serr |= 0x7ff0f03;    // clear by writing 1s to each bit
-            while (ports[i].serr)
-                __asm__ volatile("hlt");
+            while (ports[i].serr) {
+                stihlt();
+            }
         }
     }
 }
@@ -134,7 +135,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
         if (pi_list >> i) {
             ports[i].is = 0xffffffff; // clear pending interrupt bits
             while (ports[i].is) {
-                __asm__ volatile("hlt");
+                stihlt();
                 putsn_serial("PxIS clear cannot be finished: ", ports[i].is);
             }
         }
@@ -142,7 +143,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
     // second, IS.IPS is cleared to 0
     abar->is &= ~(abar->is);
     while (abar->is) {
-        __asm__ volatile("hlt");
+        stihlt();
         puts_serial("GHC.IS.IPS clear cannot be finished.\r\n");
     }
     // enable PxIE bit
@@ -179,7 +180,7 @@ void ahci_init(void)
     while (pi != pidle) {
         putsn_serial("Implement port is: ", pi);
         putsn_serial("Implement port is not idle: ", pidle);
-        __asm__ volatile("hlt");
+        stihlt();
     }
     puts_serial("AHCI init step 3 end.\r\n");
     // step 4: determine how many command slots the HBA supports
@@ -296,58 +297,60 @@ static inline void build_command(HBA_PORT *port, CMD_PARAMS *params)
     // set PxCI.CI(pFreeSlot) to indicate to the HBA that a command is active.
     notify_cmd_is_active(port, slot);
 
-    puts_serial("build command is over\r\n");
+    //puts_serial("build command is over\r\n");
 }
 
 static inline void wait_interrupt(HBA_PORT *port)
 {
-    puts_serial("while waiting interrupt\r\n");
+    //puts_serial("while waiting interrupt\r\n");
     while (port->is == 0) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("interrupt comes\r\n");
+    //puts_serial("interrupt comes\r\n");
 }
 
 static inline void clear_pxis(HBA_PORT *port)
 {
     port->is |= port->is;
-    puts_serial("while clear PxIS\r\n");
+    //puts_serial("while clear PxIS\r\n");
     while (port->is) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("clearing PxIS is over\r\n");
+    //puts_serial("clearing PxIS is over\r\n");
 }
 
 static inline void clear_ghc_is(int portno)
 {
     abar->is |= 1 << portno;
-    puts_serial("while clear IS.IPS\r\n");
+    //puts_serial("while clear IS.IPS\r\n");
     while (abar->is) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("clearing IS.IPS is finished\r\n");
+    //puts_serial("clearing IS.IPS is finished\r\n");
 }
 
 static inline void start_cmd(HBA_PORT *port)
 {
-    puts_serial("start_cmd start\r\n");
+    //puts_serial("start_cmd start\r\n");
     port->cmd &= 0xfffffffe;    // PxCMD.ST = 0
     // wait until CR is cleared
-    while (port->cmd & 0x8000) { __asm__ volatile("hlt"); }
+    while (port->cmd & 0x8000) {
+        stihlt();
+    }
 
     // set FRE and ST
     port->cmd |= 0x10;
     port->cmd |= 0x01;
-    puts_serial("start_cmd end\r\n");
+    //puts_serial("start_cmd end\r\n");
 }
 
 static inline void wait_pxci_clear(HBA_PORT *port)
 {
-    puts_serial("wait PxCI\r\n");
+    //puts_serial("wait PxCI\r\n");
     while (port->ci) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("wait PxCI end\r\n");
+    //puts_serial("wait PxCI end\r\n");
 }
 
 struct port_and_portno probe_impl_port(void)
@@ -369,7 +372,7 @@ struct port_and_portno probe_impl_port(void)
     }
     p.port = &abar->ports[k];
     p.portno = k;
-    putsn_serial("impl port: ", k);
+    //putsn_serial("impl port: ", k);
     return p;
 }
 

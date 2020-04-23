@@ -23,6 +23,12 @@ void io_sti(void)
     __asm__ volatile("sti");
 }
 
+void stihlt(void)
+{
+    __asm__ volatile("sti");
+    __asm__ volatile("hlt");
+}
+
 uint64_t mypow(uint64_t num, uint64_t p)
 {
     uint64_t ans = 1;
