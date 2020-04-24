@@ -334,7 +334,7 @@ void check_ahci(void);
 void ahci_init(void);
 struct port_and_portno probe_impl_port(void);
 int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf);
-void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte);
+void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte, int offset);
 int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf);
 
 #endif

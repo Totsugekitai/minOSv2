@@ -395,13 +395,13 @@ int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, vo
     return 1;
 }
 
-void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte)
+void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte, int offset)
 {
     struct port_and_portno p = probe_impl_port();
     char pool[1024 * count];
     ahci_read(p.port, p.portno, start_sector, count, pool);
     for (int i = 0; i < byte; i++) {
-        ((char *)buf)[i] = pool[i];
+        ((char *)buf)[i] = pool[i + offset];
     }
 }
 

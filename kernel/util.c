@@ -109,3 +109,16 @@ int dequeue_char(struct queue_char *que, char *c)
     }
 }
 
+int strncmp(const char *s1, const char *s2, unsigned long n)
+{
+    for (unsigned long i = 0; i < n; i++) {
+        if (s1[i] > s2[i]) {
+            return 1;
+        } else if (s1[i] < s2[i]) {
+            return -1;
+        } else {
+            continue;
+        }
+    }
+    return 0;
+}

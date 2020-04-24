@@ -3,11 +3,22 @@
 #include "../device/ahci.h"
 #include "../device/serial.h"
 #include "../util.h"
+#include "../mm.h"
 
 uint16_t block_size;
-uint32_t s_first_ino;
+static uint32_t s_first_ino;
+static uint32_t s_inodes_per_group;
+static uint32_t bg_inode_table;
 
 #define BLOCK (block_size / 512)
+#define EXT2_FT_UNKNOWN  (0)
+#define EXT2_FT_REG_FILE (1)
+#define EXT2_FT_DIR      (2)
+#define EXT2_FT_CHRDEV   (3)
+#define EXT2_FT_BLKDEV   (4)
+#define EXT2_FT_FIFO     (5)
+#define EXT2_FT_SOCK     (6)
+#define EXT2_FT_SYMLINK  (7)
 
 static inline void ext2_check_sblock(struct sblock_ext2 *sb)
 {
@@ -117,7 +128,7 @@ void ext2_check_inode_table(uint32_t inode_table_location, uint32_t inodes_per_g
     puts_serial("========== inodes ==========\r\n");
     for (uint32_t i = 0; i < nblock_inode_table; i++) {
         struct inode_ext2 inode[8];
-        ahci_read_byte(inode_table_location * 2, BLOCK, &inode, sizeof(struct inode_ext2));
+        ahci_read_byte(inode_table_location * 2, BLOCK, &inode, sizeof(struct inode_ext2), 0);
         for (unsigned long j = 0; j < inodes_per_block; j++) {
             putsn_serial("--------- inode number: ", i + j);
             putsn_serial("i_mode:        ", inode[j].i_mode);
@@ -156,10 +167,10 @@ void ext2_check_inode_table(uint32_t inode_table_location, uint32_t inodes_per_g
     puts_serial("=======================================\r\n");
 }
 
-void ext2_check_rootdir_inode(uint32_t inode_table_location)
+struct inode_ext2 ext2_check_rootdir_inode(uint32_t inode_table_location)
 {
     struct inode_ext2 root_inode[2];
-    ahci_read_byte(inode_table_location * BLOCK, BLOCK, &root_inode, sizeof(struct inode_ext2) * 2);
+    ahci_read_byte(inode_table_location * BLOCK, BLOCK, &root_inode, sizeof(struct inode_ext2) * 2, 0);
     putsn_serial("i_mode:        ", root_inode[1].i_mode);
     putsn_serial("i_uid:         ", root_inode[1].i_uid);
     putsn_serial("i_size:        ", root_inode[1].i_size);
@@ -188,16 +199,77 @@ void ext2_check_rootdir_inode(uint32_t inode_table_location)
     putsn_serial("i_block[13]:   ", root_inode[1].i_block[13]);
     putsn_serial("i_block[14]:   ", root_inode[1].i_block[14]);
     if (!(root_inode[1].i_mode & 0xb000) && (root_inode[1].i_mode & 0x4000)) {
-        puts_serial("This is directory\r\n");
+        puts_serial("This is a root directory\r\n");
     } else {
         puts_serial("This is not directory\r\n");
     }
+    return root_inode[1];
+}
+
+struct inode_table_ext2 create_inode_table(void)
+{
+    uint32_t inodes_per_block = block_size / sizeof(struct inode_ext2);
+    uint32_t nblock_inode_table = s_inodes_per_group / inodes_per_block;
+    if (s_inodes_per_group % inodes_per_block) {
+        nblock_inode_table++;
+    }
+    int table_len = inodes_per_block * nblock_inode_table;
+    putsn_serial("inodes_per_block: ", inodes_per_block);
+    putsn_serial("nblock_inode_table: ", nblock_inode_table);
+    putsn_serial("table_len: ", table_len);
+    struct inode_ext2 *inode_table = kmalloc(sizeof(struct inode_ext2) * table_len);
+    putsn_serial("kmalloc size: ", sizeof(struct inode_ext2) * table_len);
+    putsp_serial("kmalloc addr: ", inode_table);
+    puts_serial("inode table read\n");
+    for (uint32_t i = 0; i < nblock_inode_table; i++) {
+        struct inode_ext2 inodes[inodes_per_block];
+        ahci_read_byte((bg_inode_table + i) * BLOCK, BLOCK, inodes,
+                       sizeof(struct inode_ext2) * inodes_per_block, 0);
+        putsn_serial("inode table read: ", i);
+        for (uint32_t j = 0; j < inodes_per_block; j++) {
+            inode_table[i + j + (inodes_per_block - 1) * i] = inodes[j];
+            putsn_serial("inode store: ", i + j + (inodes_per_block - 1) * i);
+        }
+    }
+    puts_serial("inode store end\n");
+    struct inode_table_ext2 table = { .head = inode_table, .len = table_len };
+    puts_serial("return\n");
+    return table;
+}
+
+void ext2_read_rootdir_rec_from_inode(struct inode_ext2 *inode_table, int index)
+{
+    struct linked_dir_entry_ext2 lde;
+    int offset = 0;
+    char name[256];
+    while (1) {
+        ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, &lde,
+                       sizeof(struct linked_dir_entry_ext2), offset);
+        if (lde.rec_len == 0) {
+            break;
+        }
+        puts_serial("--------------------\n");
+        putsn_serial("inode:     ", lde.inode);
+        putsn_serial("rec_len:   ", lde.rec_len);
+        putsn_serial("name_len:  ", lde.name_len);
+        putsn_serial("file_type: ", lde.file_type);
+        ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, name, lde.name_len,
+                       offset + sizeof(struct linked_dir_entry_ext2));
+        nputs_serial(name, lde.name_len);
+        if (lde.file_type == EXT2_FT_DIR && strncmp(name, ".", 1) && strncmp(name, "..", 2)) {
+            struct inode_ext2 i_node;
+            ahci_read_byte(lde.inode * BLOCK, BLOCK, &i_node, sizeof(struct inode_ext2), 0);
+            ext2_read_rootdir_rec_from_inode(&i_node, lde.inode + 1);
+        }
+        offset += lde.rec_len;
+    }
+    puts_serial("--------------------\n");
 }
 
 void init_ext2(void)
 {
     struct sblock_ext2 sb;
-    ahci_read_byte(SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb, sizeof(struct sblock_ext2));
+    ahci_read_byte(SBLOCK_DISK_LBA, SBLOCK_LENGTH / AHCI_COUNT, &sb, sizeof(struct sblock_ext2), 0);
     block_size = (1024 << sb.s_log_block_size);
     s_first_ino = sb.s_first_ino;
     putsn_serial("block size: ", block_size);
@@ -211,7 +283,11 @@ void check_ext2(int argc, char **argv)
     struct sblock_ext2 sb;
     ext2_check_sblock(&sb);
     struct bg_dsc_ext2 bg = ext2_check_bg_dsc();
+    s_inodes_per_group = sb.s_inodes_per_group;
+    bg_inode_table = bg.bg_inode_table;
     //ext2_check_inode_bitmap(bg.bg_inode_bitmap);
-    ext2_check_inode_table(bg.bg_inode_table, sb.s_inodes_per_group);
-    ext2_check_rootdir_inode(bg.bg_inode_table);
+    //ext2_check_inode_table(bg.bg_inode_table, sb.s_inodes_per_group);
+    //struct inode_ext2 root_inode = ext2_check_rootdir_inode(bg.bg_inode_table);
+    struct inode_table_ext2 inode_table = create_inode_table();
+    ext2_read_rootdir_rec_from_inode(inode_table.head, 1);
 }

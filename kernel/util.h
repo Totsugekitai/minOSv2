@@ -25,5 +25,6 @@ uint64_t mypow(uint64_t num, uint64_t p);
 void *mymemset(void *buf, int ch, int n);
 void *memcpy(void *buf1, const void *buf2, unsigned long n);
 void init_bss(void);
+int strncmp(const char *s1, const char *s2, unsigned long n);
 
 #endif
