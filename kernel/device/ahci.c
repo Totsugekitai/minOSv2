@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "../util.h"
+#include "../mm.h"
 #include "serial.h"
 #include "ahci.h"
 
@@ -20,9 +21,13 @@
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 
-#define CMD_LIST_BASE 0x50000000    // size: 0x20 * 32 * 32 = 0x8000
-#define RCVD_FIS_BASE 0x50008000    // size: 0x100 * 32     = 0x2000
-#define CMD_TBL_BASE  0x50010000
+#define CMD_LIST_SIZE 0x8000    // size: 0x20 * 32 * 32 = 0x8000
+#define RCVD_FIS_SIZE 0x2000    // size: 0x100 * 32     = 0x2000
+#define PRDT_ENTRY_MAX 65536
+#define PRDT_ENTRY_SIZE (4 * 4)
+#define CMD_TBL_SIZE  (0x80 + PRDT_ENTRY_SIZE * PRDT_ENTRY_MAX)
+
+void *cmd_tbl_base;
 
 // AHCI Address Base
 // It is defined at pci.c
@@ -103,12 +108,17 @@ static uint32_t probe_idle_port(uint32_t pi)
 
 static inline void alloc_mem_for_ports(uint32_t pi_list)
 {
-    mymemset((void *)CMD_LIST_BASE, 0, 0x8000 + 0x2000);
+    void *cmd_list = kmalloc(CMD_LIST_SIZE + 128);
+    cmd_list = align(cmd_list, 128); // align as 128 byte
+    void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
+    rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
+    //mymemset(cmd_list, 0, CMD_LIST_SIZE);
+    //mymemset(rcvd_fis, 0, RCVD_FIS_SIZE);
     HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
-            ports[i].clb = CMD_LIST_BASE + sizeof(HBA_CMD_HEADER) * 32 * i;
-            ports[i].fb = RCVD_FIS_BASE + sizeof(RCVD_FIS) * i;
+            ports[i].clb = (uint32_t)cmd_list + sizeof(HBA_CMD_HEADER) * 32 * i;
+            ports[i].fb = (uint32_t)rcvd_fis + sizeof(RCVD_FIS) * i;
             ports[i].cmd |= 0x10;  // PxCMD.FRE is set to 1
         }
     }
@@ -163,6 +173,11 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
  * */
 void ahci_init(void)
 {
+    cmd_tbl_base = kmalloc(CMD_TBL_SIZE + 128);
+    cmd_tbl_base = align(cmd_tbl_base, 128);
+    if ((uint64_t)cmd_tbl_base % 128 == 0) {
+        puts_serial("cmd_tbl_base is aligned as 128 byte\n");
+    }
     puts_serial("AHCI initialization start.\r\n");
     // initial HBA reset
     hba_reset();
@@ -219,7 +234,10 @@ static int find_free_cmdslot(HBA_PORT *port)
 
 static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 {
-    mymemset(table_addr, 0, 0x80 + 16 * 65536); // zero clear
+    int prdtl = (int)((params->count - 1) >> 4) + 1;
+    //putsn_serial("memset size: ", 0x80 + 16 * prdtl);
+    mymemset(table_addr, 0, 0x80 + 16 * prdtl); // zero clear
+    //puts_serial("memset end\n");
     HBA_CMD_TBL *table = (HBA_CMD_TBL *)table_addr;
 
     // build CFIS
@@ -251,15 +269,20 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
     // 8 KB (16 sectors) per PRD Table
     // 1 sectors = 512 KB
     uint16_t count = params->count;
-    int prdtl = (int)((params->count - 1) >> 4) + 1;
-    uint8_t *buf = (uint8_t *)params->dba;
+    if (!is_aligned(params->dba, 2)) {
+        puts_serial("cmd_tbl_base is not aligned\n");
+        halt();
+    } else {
+        //puts_serial("cmd_tbl_base is aligned\n");
+    }
+    uint16_t *buf = (uint16_t *)params->dba;
     int i;
     for (i = 0; i < prdtl - 1; i++) {
         table->prdt_entry[i].dba  = (uint32_t)(uint64_t)buf;
         table->prdt_entry[i].dbau = 0;
         table->prdt_entry[i].dbc = 8 * 1024 - 1;
         table->prdt_entry[i].i = 1; // notify interrupt
-        buf += 8 * 1024; // 8K bytes
+        buf += 4 * 1024; // 2 * 4 * 1024 = 8K bytes
         count -= 16; // 16 sectors
     }
     // Last entry
@@ -272,7 +295,11 @@ static inline void build_cmdheader(HBA_PORT *port, int slot, CMD_PARAMS *params)
 {
     HBA_CMD_HEADER *cmd_list = ((HBA_CMD_HEADER *)(uint64_t)port->clb + slot);
     mymemset((void *)cmd_list, 0, 0x400);
-    cmd_list->ctba = (uint32_t)CMD_TBL_BASE;
+    if (!is_aligned(cmd_tbl_base, 128)) {
+        puts_serial("cmd_tbl_base is not aligned\n");
+        halt();
+    }
+    cmd_list->ctba = (uint32_t)cmd_tbl_base;
     cmd_list->ctbau = 0;
     cmd_list->prdtl = (uint16_t)(((params->count - 1) >> 4) + 1);
     cmd_list->cfl = params->cfis_len;
@@ -287,12 +314,15 @@ static inline void notify_cmd_is_active(HBA_PORT *port, int slot)
 static inline void build_command(HBA_PORT *port, CMD_PARAMS *params)
 {
     int slot = find_free_cmdslot(port);
+    //puts_serial("find_free_cmdslot\n");
     // step 1:
     // build a command FIS in system memory at location PxCLB[CH(pFreeSlot)]:CFIS with the command type.
-    build_cmd_table(params, (uint64_t *)CMD_TBL_BASE);
+    build_cmd_table(params, (uint64_t *)cmd_tbl_base);
+    //puts_serial("build_cmd_table\n");
     // step 2:
     // build a command header at PxCLB[CH(pFreeSlot)].
     build_cmdheader(port, slot, params);
+    //puts_serial("build_cmdheader\n");
     // step 3:
     // set PxCI.CI(pFreeSlot) to indicate to the HBA that a command is active.
     notify_cmd_is_active(port, slot);
@@ -429,22 +459,23 @@ void check_ahci(void)
     ahci_init();    // AHCI initialization
     put_hba_memory_register();
 
-    //struct port_and_portno p = probe_impl_port();
-    //
-    //uint64_t buf[64];
-    //for (int i = 0; i < 64; i++) {
-    //    buf[i] = 0xbeeeeeeeeeeeeeefull;
-    //    putn_serial(buf[i]);
-    //}
-    //
-    //ahci_read(p.port, p.portno, 2, 1, buf);
-    //
-    //for (int i = 0; i < 64; i++) {
-    //    putn_serial(buf[i]);
-    //    puts_serial("\r\n");
-    //}
-    //puts_serial("\r\n");
-    //
-    //puts_serial("check end\r\n");
+    struct port_and_portno p = probe_impl_port();
+    
+    void *buf = kmalloc(8 * 64 + 2);
+    uint64_t *buf_aligned = align(buf, 2);
+    for (int i = 0; i < 64; i++) {
+        buf_aligned[i] = 0xbeeeeeeeeeeeeeefull;
+        //putn_serial(buf[i]);
+    }
+    
+    ahci_read(p.port, p.portno, 2, 1, buf);
+    
+    for (int i = 0; i < 64; i++) {
+        putn_serial(buf_aligned[i]);
+        puts_serial("\r\n");
+    }
+    puts_serial("\r\n");
+    
+    puts_serial("check end\r\n");
 }
 
