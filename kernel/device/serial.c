@@ -70,8 +70,8 @@ void nputs_serial(const char *s, int n)
     for (int i = 0; i < n; i++) {
         write_serial(s[i]);
     }
-    write_serial('\r');
-    write_serial('\n');
+    //write_serial('\r');
+    //write_serial('\n');
     io_sti();
 }
 void putn_serial(uint64_t n)
