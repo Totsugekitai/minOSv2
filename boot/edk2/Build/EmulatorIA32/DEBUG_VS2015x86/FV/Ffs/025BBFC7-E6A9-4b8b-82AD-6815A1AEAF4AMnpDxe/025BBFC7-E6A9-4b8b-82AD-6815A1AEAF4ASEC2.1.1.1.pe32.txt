@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/025BBFC7-E6A9-4b8b-82AD-6815A1AEAF4AMnpDxe/025BBFC7-E6A9-4b8b-82AD-6815A1AEAF4ASEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/NetworkPkg/MnpDxe/MnpDxe/OUTPUT/MnpDxe.efi

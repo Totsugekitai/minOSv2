@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/1A7E4468-2F55-4a56-903C-01265EB7622BTcpDxe/1A7E4468-2F55-4a56-903C-01265EB7622BSEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/NetworkPkg/TcpDxe/TcpDxe/OUTPUT/TcpDxe.efi

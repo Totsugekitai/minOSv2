@@ -1,5 +1,0 @@
-
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull/DEBUG/AutoGen.h
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Include/Base.h
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Include/Library/DebugLib.h
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Include/X64/ProcessorBind.h

@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/462CAA21-7614-4503-836E-8AB6F4662331UiApp/462CAA21-7614-4503-836E-8AB6F4662331SEC1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/MdeModulePkg/Application/UiApp/UiApp/OUTPUT/UiApp.efi

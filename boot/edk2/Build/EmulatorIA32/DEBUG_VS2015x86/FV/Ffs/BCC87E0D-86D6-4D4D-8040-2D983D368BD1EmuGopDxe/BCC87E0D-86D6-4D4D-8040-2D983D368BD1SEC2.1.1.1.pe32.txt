@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/BCC87E0D-86D6-4D4D-8040-2D983D368BD1EmuGopDxe/BCC87E0D-86D6-4D4D-8040-2D983D368BD1SEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/EmuGopDxe/EmuGopDxe/OUTPUT/EmuGopDxe.efi

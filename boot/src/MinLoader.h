@@ -9,8 +9,8 @@
 #include <Protocol/SimpleFileSystem.h>
 #include <Guid/FileInfo.h>
 
-#include "../../commom/boot_types.h"
-#include "../../commom/elf.h"
+#include "boot_types.h"
+#include "elf.h"
 
 extern void jump_to_kernel(bootinfo_t *binfo, uint64_t *kernel_addr);
 

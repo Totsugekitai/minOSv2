@@ -1,7 +1,0 @@
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.h
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/DevicePathUtilities.c
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/DevicePathToText.c
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/MinLoaderPkgX64/RELEASE_GCC5/X64/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib/DEBUG/AutoGen.h
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.c
-/home/totsugekitai/workspace/mywork/min_bootloader/edk2/MdePkg/Library/UefiDevicePathLib/DevicePathFromText.c
