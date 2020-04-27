@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_RAW -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/E4F61863-FE2C-4b56-A8F4-08519BC439DFVlanConfigDxe/VlanConfigDxeOffset.raw /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/E4F61863-FE2C-4b56-A8F4-08519BC439DFVlanConfigDxe/VlanConfigDxe.offset

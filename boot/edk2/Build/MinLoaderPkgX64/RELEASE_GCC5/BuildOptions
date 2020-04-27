@@ -1,3 +1,0 @@
-gCommandLineDefines: {'ARCH': 'X64'}
-BuildOptionPcd: []
-Active Platform: /home/totsugekitai/workspace/mywork/min_bootloader/edk2/MinLoaderPkg/MinLoaderPkg.dsc

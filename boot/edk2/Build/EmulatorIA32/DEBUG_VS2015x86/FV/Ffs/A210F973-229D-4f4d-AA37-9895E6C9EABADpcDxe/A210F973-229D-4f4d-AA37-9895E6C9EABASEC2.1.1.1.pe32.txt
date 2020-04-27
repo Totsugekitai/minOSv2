@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/A210F973-229D-4f4d-AA37-9895E6C9EABADpcDxe/A210F973-229D-4f4d-AA37-9895E6C9EABASEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/NetworkPkg/DpcDxe/DpcDxe/OUTPUT/DpcDxe.efi

@@ -16,19 +16,48 @@ x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 ### ブートローダのビルド
 
+#### EDK2をクローンする
+
+```
+$ git clone https://github.com/tianocore/edk2.git
+```
+
 #### EDK2の環境変数設定
 
-まず `edk2/` ディレクトリに入って `source edksetup.sh` を叩き、環境変数を設定する。
+まず `edk2/` ディレクトリに入って以下を行う。
+
+```
+$ git submodule update --init
+$ make -C BaseTools/Source/C
+```
+
+で必要なものをビルドする。
+
+次に`source edksetup.sh` を叩き、環境変数を設定する。
 以降はこの環境変数を読み込んだシェル上で操作を行う。
+
+#### `target.txt` を編集する
+
+`Conf/target.txt` が生成されていると思うので、それを以下のように編集する。
+
+```
+# -- snip --
+ACTIVE_PLATFORM       = MinLoaderPkg/MinLoaderPkg.dsc
+# -- snip --
+TARGET_ARCH           = X64
+# -- snip --
+TOOL_CHAIN_TAG        = GCC5
+```
 
 #### ブートローダの `make`
 
-ルートディレクトリで `make boot` です。
+`minOSv2` のルートディレクトリで `make boot` です。
+これでEDK2でビルドされたブートローダが `minOSv2/fs/` 以下にコピーまでされます。
 
 ## QEMU での実行方法
 
-ルートディレクトリで `make run` です。
+`minOSv2` のルートディレクトリで `make run` です。
 
 ## 掃除
 
-ルートディレクトリで `make clean` です。
+`minOSv2` のルートディレクトリで `make clean` です。
