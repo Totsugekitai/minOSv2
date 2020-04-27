@@ -56,6 +56,8 @@ TOOL_CHAIN_TAG        = GCC5
 
 ## QEMU での実行方法
 
+`minOSv2/Makefile` の `QEMU` 変数を各自の環境に合わせてパスを書き換えて下さい。
+
 `minOSv2` のルートディレクトリで `make run` です。
 
 ## 掃除
