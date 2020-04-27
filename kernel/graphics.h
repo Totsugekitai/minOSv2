@@ -14,6 +14,7 @@ typedef struct pix_format_t {
 void init_graphics(bootinfo_t *binfo);
 void draw_square(uint32_t ul_x, uint32_t ul_y, uint32_t x_len, uint32_t y_len, pix_format_t color);
 void paint_background(pix_format_t bgcolor);
+void printchar(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bcolor, char c);
 void printstr(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bcolor, char *s);
 void printnum(uint32_t ul_x, uint32_t ul_y, struct pix_format_t color, struct pix_format_t bcolor,
         uint64_t num);

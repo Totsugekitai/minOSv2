@@ -9,7 +9,7 @@
 struct queue_char {
     int head;
     int num;
-    char data[QUEUE_SIZE];  // 80 char x 20 line
+    char data[QUEUE_SIZE];  // 80 char 20 line
 };
 
 void halt(void);
@@ -27,6 +27,16 @@ void *memcpy(void *buf1, const void *buf2, unsigned long n);
 int is_aligned(void *addr, int align);
 void *align(void *addr, int align);
 void init_bss(void);
+int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, unsigned long n);
+char *strcpy(char *s1, const char *s2);
+
+int queue_char_isempty(struct queue_char *que);
+int queue_char_isfull(struct queue_char *que);
+char queue_char_head(struct queue_char *que);
+int enqueue_char(struct queue_char *que, char c);
+int enqueue_str(struct queue_char *que, char *s);
+int dequeue_char(struct queue_char *que, char *c);
+int dequeue_str(struct queue_char *que, char *buf);
 
 #endif

@@ -104,6 +104,11 @@ int queue_char_isfull(struct queue_char *que)
     return que->num == QUEUE_SIZE;
 }
 
+char queue_char_head(struct queue_char *que)
+{
+    return que->data[que->head];
+}
+
 int enqueue_char(struct queue_char *que, char c)
 {
     if (que->num < QUEUE_SIZE) {
@@ -115,6 +120,22 @@ int enqueue_char(struct queue_char *que, char c)
     }
 }
 
+int enqueue_str(struct queue_char *que, char *s)
+{
+    int success, i;
+    for (i = 0; s[i] != 0; i++) {
+        success = enqueue_char(que, s[i]);
+        if (!success) {
+            return 0;
+        }
+    }
+    success = enqueue_char(que, s[i]);
+    if (!success) {
+        return 0;
+    }
+    return 1;
+}
+
 int dequeue_char(struct queue_char *que, char *c)
 {
     if (que->num > 0) {
@@ -124,6 +145,42 @@ int dequeue_char(struct queue_char *que, char *c)
         return 1;
     } else {
         return 0;
+    }
+}
+
+int dequeue_str(struct queue_char *que, char *buf)
+{
+    char dust;
+    for (int i = 0; queue_char_head(que) == 0; i++) {
+        dequeue_char(que, &dust);
+    }
+    for (int i = 0; dequeue_char(que, &buf[i]); i++) {
+        if (buf[i]) {
+            continue;
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int strcmp(const char *s1, const char *s2)
+{
+    int s1len = 0, s2len = 0;
+    for (int i = 0; s1[i] != 0; i++) {
+        s1len++;
+    }
+    for (int i = 0; s2[i] != 0; i++) {
+        s2len++;
+    }
+    if (s1len == s2len) {
+        return strncmp(s1, s2, s1len);
+    } else {
+        if (s1len > s2len) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
 }
 
@@ -139,4 +196,14 @@ int strncmp(const char *s1, const char *s2, unsigned long n)
         }
     }
     return 0;
+}
+
+char *strcpy(char *s1, const char *s2)
+{
+    int i;
+    for (i = 0; s2[i] != 0; i++) {
+        s1[i] = s2[i];
+    }
+    s1[i] = s2[i];
+    return s1;
 }

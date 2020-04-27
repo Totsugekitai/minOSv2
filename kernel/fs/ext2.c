@@ -254,9 +254,10 @@ void ext2_read_dir_rec_from_inode(struct inode_ext2 *inode_table, int index, int
         //putsn_serial("name_len:  ", lde.name_len);
         //putsn_serial("file_type: ", lde.file_type);
         ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, name, lde.name_len,
-                       offset + sizeof(struct linked_dir_entry_ext2));
+                       offset + sizeof(lde));
 
-        for (int i = 0; i < rec_depth; i++) {
+        const int tab_size = 4;
+        for (int i = 0; i < rec_depth * tab_size; i++) {
             puts_serial(" ");
         }
         nputs_serial(name, lde.name_len);
@@ -265,10 +266,10 @@ void ext2_read_dir_rec_from_inode(struct inode_ext2 *inode_table, int index, int
         }
         puts_serial("\n");
 
-        if (lde.file_type == EXT2_FT_DIR && strncmp(name, ".", 1) && strncmp(name, "..", 2)) {
+        if (lde.file_type == EXT2_FT_DIR && strcmp(name, ".") != 0 && strcmp(name, "..") != 0) {
             struct inode_ext2 i_node;
-            ahci_read_byte(lde.inode * BLOCK, BLOCK, &i_node, sizeof(struct inode_ext2), 0);
-            int depth_next = rec_depth + 4;
+            ahci_read_byte(lde.inode * BLOCK, BLOCK, &i_node, sizeof(i_node), 0);
+            int depth_next = rec_depth + 1;
             ext2_read_dir_rec_from_inode(inode_table, lde.inode - 1, depth_next);
         }
         offset += lde.rec_len;
