@@ -218,8 +218,8 @@ struct inode_table_ext2 create_inode_table(void)
     putsn_serial("nblock_inode_table: ", nblock_inode_table);
     putsn_serial("table_len: ", table_len);
     struct inode_ext2 *inode_table = kmalloc(sizeof(struct inode_ext2) * table_len);
-    putsn_serial("kmalloc size: ", sizeof(struct inode_ext2) * table_len);
-    putsp_serial("kmalloc addr: ", inode_table);
+    //putsn_serial("kmalloc size: ", sizeof(struct inode_ext2) * table_len);
+    //putsp_serial("kmalloc addr: ", inode_table);
     puts_serial("inode table read\n");
     for (uint32_t i = 0; i < nblock_inode_table; i++) {
         struct inode_ext2 inodes[inodes_per_block];
@@ -228,12 +228,12 @@ struct inode_table_ext2 create_inode_table(void)
         putsn_serial("inode table read: ", i);
         for (uint32_t j = 0; j < inodes_per_block; j++) {
             inode_table[i + j + (inodes_per_block - 1) * i] = inodes[j];
-            putsn_serial("inode store: ", i + j + (inodes_per_block - 1) * i);
+            //putsn_serial("inode store: ", i + j + (inodes_per_block - 1) * i);
         }
     }
     puts_serial("inode store end\n");
     struct inode_table_ext2 table = { .head = inode_table, .len = table_len };
-    puts_serial("return\n");
+
     return table;
 }
 
@@ -243,8 +243,7 @@ void ext2_read_dir_rec_from_inode(struct inode_ext2 *inode_table, int index, int
     int offset = 0;
     char name[256];
     while (1) {
-        ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, &lde,
-                       sizeof(struct linked_dir_entry_ext2), offset);
+        ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, &lde, sizeof(lde), offset);
         if (lde.rec_len == 0) {
             break;
         }
@@ -255,6 +254,7 @@ void ext2_read_dir_rec_from_inode(struct inode_ext2 *inode_table, int index, int
         //putsn_serial("file_type: ", lde.file_type);
         ahci_read_byte(inode_table[index].i_block[0] * BLOCK, BLOCK, name, lde.name_len,
                        offset + sizeof(lde));
+        name[lde.name_len] = 0;
 
         const int tab_size = 4;
         for (int i = 0; i < rec_depth * tab_size; i++) {
