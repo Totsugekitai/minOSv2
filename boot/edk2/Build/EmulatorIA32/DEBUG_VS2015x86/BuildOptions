@@ -1,4 +1,0 @@
-gCommandLineDefines: {'ARCH': 'IA32'}
-BuildOptionPcd: []
-Active Platform: /home/totsugekitai/workspace/mywork/min_bootloader/edk2/EmulatorPkg/EmulatorPkg.dsc
-Flash Image Definition: /home/totsugekitai/workspace/mywork/min_bootloader/edk2/EmulatorPkg/EmulatorPkg.fdf

@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/961578FE-B6B7-44c3-AF35-6BC705CD2B1FFat/961578FE-B6B7-44c3-AF35-6BC705CD2B1FSEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/FatPkg/EnhancedFatDxe/Fat/OUTPUT/Fat.efi

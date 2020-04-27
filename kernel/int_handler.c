@@ -21,19 +21,22 @@ extern uint64_t previous_interrupt;
 __attribute__((interrupt))
 void timer_handler(struct intr_frame *frame)
 {
+    UNUSED(frame);
+    io_cli();
     tick++;
     io_out8(PIC0_OCW2, PIC_EOI);
-    io_out8(PIC1_OCW2, PIC_EOI);
+    //io_out8(PIC1_OCW2, PIC_EOI);
 
-    if ((tick % 0x10) == 0) {
-        printstrnum(400, 0, blue, white, "tick: ", tick);
-    }
+    //if ((tick % 0x10) == 0) {
+    //    printstrnum(400, 0, blue, white, "tick: ", tick);
+    //}
     /** 周期が来たらスケジューラを呼び出す
      * 各種パラメータはint_handler.hで設定
      */
+    io_sti();
     if (tick > previous_interrupt + timer_period && tick > 90) {
         previous_interrupt = tick;
-        puts_serial("scheduler start\r\n");
+        //puts_serial("scheduler\r\n");
         thread_scheduler();
     }
 }
@@ -45,13 +48,12 @@ extern uint16_t comport;
 __attribute__((interrupt))
 void com_handler(struct intr_frame *frame)
 {
+    UNUSED(frame);
     io_cli();
     key = io_in8(comport);
     io_out8(PIC0_OCW2, PIC_EOI);
     io_out8(PIC1_OCW2, PIC_EOI);
-    puts_serial("COM Interrupt: ");
-    putn_serial(key);
-    puts_serial("\r\n");
+    putsn_serial("COM Interrupt: ", key);
 
     if (key != '\n' && key != '\r' && key != 0x7f) {    // 0x7f = DEL
         char s[2];

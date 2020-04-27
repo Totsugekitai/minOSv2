@@ -87,7 +87,7 @@ struct inode_ext2 {
     uint32_t i_dtime;
     uint16_t i_gid;
     uint16_t i_links_count; // how many times this inode is linked
-    uint32_t i_blocks; // total numbe of blocks reserved to contain the data of this inode
+    uint32_t i_blocks; // total number of blocks reserved to contain the data of this inode
     uint32_t i_flags;
     uint32_t i_osd1; // OS dependent value
     /*
@@ -116,14 +116,18 @@ struct inode_ext2 {
     uint32_t i_osd2[3];
 };
 
-struct linked_directory_entry_ext2 {
+struct inode_table_ext2 {
+    struct inode_ext2 *head;
+    int len;
+};
+
+struct linked_dir_entry_ext2 {
     uint32_t inode;
     uint16_t rec_len;
     uint8_t name_len;
     uint8_t file_type;
-    char name[255];
 };
 
-void check_ext2(void);
+void check_ext2(int argc, char **argv);
 
 #endif

@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_VERSION -n 1.0 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/34C8C28F-B61C-45a2-8F2E-89E46BECC63BPeiVariable/34C8C28F-B61C-45a2-8F2E-89E46BECC63BSEC4.ver

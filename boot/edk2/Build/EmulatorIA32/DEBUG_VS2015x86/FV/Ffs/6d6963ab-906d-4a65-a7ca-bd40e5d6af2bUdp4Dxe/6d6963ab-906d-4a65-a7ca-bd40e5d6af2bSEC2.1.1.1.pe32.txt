@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/6d6963ab-906d-4a65-a7ca-bd40e5d6af2bUdp4Dxe/6d6963ab-906d-4a65-a7ca-bd40e5d6af2bSEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/NetworkPkg/Udp4Dxe/Udp4Dxe/OUTPUT/Udp4Dxe.efi

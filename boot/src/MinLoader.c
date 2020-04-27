@@ -7,14 +7,22 @@ static uint64_t *update_start_addr(uint64_t *start_addr)
     return (uint64_t *)((char *)start_addr + (int)section_header[1].sh_offset);
 }
 
-static inline void relocate_kernel(uint64_t *start_addr, uint64_t *updated_start_addr, UINTN file_size)
-{
-    char *saddr = (char *)start_addr;
-    char *usaddr = (char *)updated_start_addr;
-    char *diff = usaddr - saddr;
-    char *correct = saddr - diff;
-    gBS->CopyMem(correct, start_addr, file_size);
-}
+//static inline void relocate_kernel(uint64_t *start_addr, uint64_t *updated_start_addr, UINTN file_size)
+//{
+//    //char *saddr = (char *)start_addr;
+//    //char *usaddr = (char *)updated_start_addr;
+//    //char *diff = usaddr - saddr;
+//    ////uint64_t diff = (uint64_t)usaddr - (uint64_t)saddr;
+//    //char *correct = saddr - diff;
+//    ////char *correct = saddr - (uint64_t)diff;
+//    ////Print(L"diff: %x\n", diff);
+//    ////Print(L"correct: %p\n", correct);
+//
+//    //gBS->CopyMem(correct, start_addr, file_size);
+//    //for (UINTN i = 0; i < file_size; i++) {
+//    //    correct[i] = ((char *)start_addr)[i];
+//    //}
+//}
 
 EFI_STATUS
 EFIAPI
@@ -80,9 +88,13 @@ UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     // update start address
     uint64_t *updated_start_addr = update_start_addr(start_addr);
+    Print(L"updated_start_addr: %p\n", updated_start_addr);
 
     // relocate kernel
-    relocate_kernel(start_addr, updated_start_addr, file_size);
+    //relocate_kernel(start_addr, updated_start_addr, file_size);
+    //for (UINTN i = 0; i < file_size; i++) {
+    //    start_addr[i] = updated_start_addr[i];
+    //}
 
     // メモリマップ取得のための変数
     UINTN mmapsize = 0, mapkey, descsize;
@@ -107,8 +119,8 @@ UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     // カーネルに渡す情報をレジスタに格納
     // スタックポインタを設定しカーネルへジャンプ
-    jump_to_kernel(&binfo, start_addr);
-    //jump_to_kernel(&binfo, updated_start_addr);
+    //jump_to_kernel(&binfo, start_addr);
+    jump_to_kernel(&binfo, updated_start_addr);
 
     return EFI_SUCCESS;
 }

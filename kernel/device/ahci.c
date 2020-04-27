@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include "../util.h"
+#include "../mm.h"
 #include "serial.h"
 #include "ahci.h"
-#include "../fs/ext2.h"
 
 #define SATA_SIG_ATA 0x00000101   // SATA drive
 #define SATA_SIG_ATAPI 0xEB140101 // SATAPI drive
@@ -21,9 +21,13 @@
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 
-#define CMD_LIST_BASE 0x50000000    // size: 0x20 * 32 * 32 = 0x8000
-#define RCVD_FIS_BASE 0x50008000    // size: 0x100 * 32     = 0x2000
-#define CMD_TBL_BASE  0x50010000
+#define CMD_LIST_SIZE 0x8000    // size: 0x20 * 32 * 32 = 0x8000
+#define RCVD_FIS_SIZE 0x2000    // size: 0x100 * 32     = 0x2000
+#define PRDT_ENTRY_MAX 65536
+#define PRDT_ENTRY_SIZE (4 * 4)
+#define CMD_TBL_SIZE  (0x80 + PRDT_ENTRY_SIZE * PRDT_ENTRY_MAX)
+
+void *cmd_tbl_base;
 
 // AHCI Address Base
 // It is defined at pci.c
@@ -81,7 +85,7 @@ static inline void hba_reset(void)
     // during HR = 1, polling
     while (abar->ghc & 0x1) {
         puts_serial(".");
-        __asm__ volatile("hlt");
+        stihlt();
     }
     puts_serial("\r\n");
 }
@@ -102,14 +106,19 @@ static uint32_t probe_idle_port(uint32_t pi)
     return pidle;
 }
 
-static inline void alloc_mem_for_ports(uint32_t pi_list, uint16_t slot_num)
+static inline void alloc_mem_for_ports(uint32_t pi_list)
 {
-    mymemset((void *)CMD_LIST_BASE, 0, 0x8000 + 0x2000);
+    void *cmd_list = kmalloc(CMD_LIST_SIZE + 128);
+    cmd_list = align(cmd_list, 128); // align as 128 byte
+    void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
+    rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
+    //mymemset(cmd_list, 0, CMD_LIST_SIZE);
+    //mymemset(rcvd_fis, 0, RCVD_FIS_SIZE);
     HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
-            ports[i].clb = CMD_LIST_BASE + sizeof(HBA_CMD_HEADER) * 32 * i;
-            ports[i].fb = RCVD_FIS_BASE + sizeof(RCVD_FIS) * i;
+            ports[i].clb = (uint32_t)cmd_list + sizeof(HBA_CMD_HEADER) * 32 * i;
+            ports[i].fb = (uint32_t)rcvd_fis + sizeof(RCVD_FIS) * i;
             ports[i].cmd |= 0x10;  // PxCMD.FRE is set to 1
         }
     }
@@ -121,8 +130,9 @@ static inline void clear_ports_serr(uint32_t pi_list)
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
             ports[i].serr |= 0x7ff0f03;    // clear by writing 1s to each bit
-            while (ports[i].serr)
-                __asm__ volatile("hlt");
+            while (ports[i].serr) {
+                stihlt();
+            }
         }
     }
 }
@@ -135,7 +145,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
         if (pi_list >> i) {
             ports[i].is = 0xffffffff; // clear pending interrupt bits
             while (ports[i].is) {
-                __asm__ volatile("hlt");
+                stihlt();
                 putsn_serial("PxIS clear cannot be finished: ", ports[i].is);
             }
         }
@@ -143,7 +153,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
     // second, IS.IPS is cleared to 0
     abar->is &= ~(abar->is);
     while (abar->is) {
-        __asm__ volatile("hlt");
+        stihlt();
         puts_serial("GHC.IS.IPS clear cannot be finished.\r\n");
     }
     // enable PxIE bit
@@ -163,6 +173,11 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
  * */
 void ahci_init(void)
 {
+    cmd_tbl_base = kmalloc(CMD_TBL_SIZE + 128);
+    cmd_tbl_base = align(cmd_tbl_base, 128);
+    if ((uint64_t)cmd_tbl_base % 128 == 0) {
+        puts_serial("cmd_tbl_base is aligned as 128 byte\n");
+    }
     puts_serial("AHCI initialization start.\r\n");
     // initial HBA reset
     hba_reset();
@@ -180,15 +195,15 @@ void ahci_init(void)
     while (pi != pidle) {
         putsn_serial("Implement port is: ", pi);
         putsn_serial("Implement port is not idle: ", pidle);
-        __asm__ volatile("hlt");
+        stihlt();
     }
     puts_serial("AHCI init step 3 end.\r\n");
     // step 4: determine how many command slots the HBA supports
-    uint16_t slot_num = (uint16_t)((abar->cap >> 8) & 0x1f);
+    //uint16_t slot_num = (uint16_t)((abar->cap >> 8) & 0x1f);
     puts_serial("AHCI init step 4 end.\r\n");
     // step 5: allocate memory for implemented ports
     // required params: PxCLB and PxFB
-    alloc_mem_for_ports(pi, slot_num);
+    alloc_mem_for_ports(pi);
     puts_serial("AHCI init step 5 end.\r\n");
     // step 6: clear PxSERR
     clear_ports_serr(pi);
@@ -219,7 +234,10 @@ static int find_free_cmdslot(HBA_PORT *port)
 
 static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 {
-    mymemset(table_addr, 0, 0x80 + 16 * 65536); // zero clear
+    int prdtl = (int)((params->count - 1) >> 4) + 1;
+    //putsn_serial("memset size: ", 0x80 + 16 * prdtl);
+    mymemset(table_addr, 0, 0x80 + 16 * prdtl); // zero clear
+    //puts_serial("memset end\n");
     HBA_CMD_TBL *table = (HBA_CMD_TBL *)table_addr;
 
     // build CFIS
@@ -251,15 +269,20 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
     // 8 KB (16 sectors) per PRD Table
     // 1 sectors = 512 KB
     uint16_t count = params->count;
-    int prdtl = (int)((params->count - 1) >> 4) + 1;
-    uint8_t *buf = (uint8_t *)params->dba;
+    if (!is_aligned(params->dba, 2)) {
+        puts_serial("cmd_tbl_base is not aligned\n");
+        halt();
+    } else {
+        //puts_serial("cmd_tbl_base is aligned\n");
+    }
+    uint16_t *buf = (uint16_t *)params->dba;
     int i;
     for (i = 0; i < prdtl - 1; i++) {
         table->prdt_entry[i].dba  = (uint32_t)(uint64_t)buf;
         table->prdt_entry[i].dbau = 0;
         table->prdt_entry[i].dbc = 8 * 1024 - 1;
         table->prdt_entry[i].i = 1; // notify interrupt
-        buf += 8 * 1024; // 8K bytes
+        buf += 4 * 1024; // 2 * 4 * 1024 = 8K bytes
         count -= 16; // 16 sectors
     }
     // Last entry
@@ -272,7 +295,11 @@ static inline void build_cmdheader(HBA_PORT *port, int slot, CMD_PARAMS *params)
 {
     HBA_CMD_HEADER *cmd_list = ((HBA_CMD_HEADER *)(uint64_t)port->clb + slot);
     mymemset((void *)cmd_list, 0, 0x400);
-    cmd_list->ctba = (uint32_t)CMD_TBL_BASE;
+    if (!is_aligned(cmd_tbl_base, 128)) {
+        puts_serial("cmd_tbl_base is not aligned\n");
+        halt();
+    }
+    cmd_list->ctba = (uint32_t)cmd_tbl_base;
     cmd_list->ctbau = 0;
     cmd_list->prdtl = (uint16_t)(((params->count - 1) >> 4) + 1);
     cmd_list->cfl = params->cfis_len;
@@ -287,106 +314,73 @@ static inline void notify_cmd_is_active(HBA_PORT *port, int slot)
 static inline void build_command(HBA_PORT *port, CMD_PARAMS *params)
 {
     int slot = find_free_cmdslot(port);
+    //puts_serial("find_free_cmdslot\n");
     // step 1:
     // build a command FIS in system memory at location PxCLB[CH(pFreeSlot)]:CFIS with the command type.
-    build_cmd_table(params, (uint64_t *)CMD_TBL_BASE);
+    build_cmd_table(params, (uint64_t *)cmd_tbl_base);
+    //puts_serial("build_cmd_table\n");
     // step 2:
     // build a command header at PxCLB[CH(pFreeSlot)].
     build_cmdheader(port, slot, params);
+    //puts_serial("build_cmdheader\n");
     // step 3:
     // set PxCI.CI(pFreeSlot) to indicate to the HBA that a command is active.
     notify_cmd_is_active(port, slot);
 
-    puts_serial("build command is over\r\n");
+    //puts_serial("build command is over\r\n");
 }
 
 static inline void wait_interrupt(HBA_PORT *port)
 {
-    puts_serial("while waiting interrupt\r\n");
+    //puts_serial("while waiting interrupt\r\n");
     while (port->is == 0) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("interrupt comes\r\n");
+    //puts_serial("interrupt comes\r\n");
 }
 
 static inline void clear_pxis(HBA_PORT *port)
 {
     port->is |= port->is;
-    puts_serial("while clear PxIS\r\n");
+    //puts_serial("while clear PxIS\r\n");
     while (port->is) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("clearing PxIS is over\r\n");
+    //puts_serial("clearing PxIS is over\r\n");
 }
 
 static inline void clear_ghc_is(int portno)
 {
     abar->is |= 1 << portno;
-    puts_serial("while clear IS.IPS\r\n");
+    //puts_serial("while clear IS.IPS\r\n");
     while (abar->is) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("clearing IS.IPS is finished\r\n");
+    //puts_serial("clearing IS.IPS is finished\r\n");
 }
 
 static inline void start_cmd(HBA_PORT *port)
 {
-    puts_serial("start_cmd start\r\n");
+    //puts_serial("start_cmd start\r\n");
     port->cmd &= 0xfffffffe;    // PxCMD.ST = 0
     // wait until CR is cleared
-    while (port->cmd & 0x8000) { __asm__ volatile("hlt"); }
+    while (port->cmd & 0x8000) {
+        stihlt();
+    }
 
     // set FRE and ST
     port->cmd |= 0x10;
     port->cmd |= 0x01;
-    puts_serial("start_cmd end\r\n");
+    //puts_serial("start_cmd end\r\n");
 }
 
 static inline void wait_pxci_clear(HBA_PORT *port)
 {
-    puts_serial("wait PxCI\r\n");
+    //puts_serial("wait PxCI\r\n");
     while (port->ci) {
-        __asm__ volatile("hlt");
+        stihlt();
     }
-    puts_serial("wait PxCI end\r\n");
-}
-
-int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf)
-{
-    start_cmd(port);
-    CMD_PARAMS params;
-    params.fis_type = 0x27;
-    params.cmd_type = READ_DMA_EXT;
-    params.cfis_len = 5;
-    params.lba = start_lba;
-    params.count = count;
-    params.dba = (uint64_t *)buf;
-    params.w = 0;
-    build_command(port, &params);
-    wait_interrupt(port);
-    clear_pxis(port);
-    clear_ghc_is(portno);
-    wait_pxci_clear(port);
-    return 1;
-}
-
-int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf)
-{
-    start_cmd(port);
-    CMD_PARAMS params;
-    params.fis_type = 0x27;
-    params.cmd_type = WRITE_DMA_EXT;
-    params.cfis_len = 5;
-    params.lba = start_lba;
-    params.count = count;
-    params.dba = (uint64_t *)buf;
-    params.w = 1;
-    build_command(port, &params);
-    wait_interrupt(port);
-    clear_pxis(port);
-    clear_ghc_is(portno);
-    wait_pxci_clear(port);
-    return 1;
+    //puts_serial("wait PxCI end\r\n");
 }
 
 struct port_and_portno probe_impl_port(void)
@@ -408,8 +402,56 @@ struct port_and_portno probe_impl_port(void)
     }
     p.port = &abar->ports[k];
     p.portno = k;
-    putsn_serial("impl port: ", k);
+    //putsn_serial("impl port: ", k);
     return p;
+}
+
+int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf)
+{
+    start_cmd(port);
+    CMD_PARAMS params;
+    params.fis_type = 0x27;
+    params.cmd_type = READ_DMA_EXT;
+    params.cfis_len = 5;
+    params.lba = start_lba;
+    params.count = count;
+    params.dba = (uint64_t *)buf;
+    params.w = 0;
+    build_command(port, &params);
+    wait_interrupt(port);
+    clear_pxis(port);
+    clear_ghc_is(portno);
+    wait_pxci_clear(port);
+    return 1;
+}
+
+void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte, int offset)
+{
+    struct port_and_portno p = probe_impl_port();
+    char pool[1024 * count];
+    ahci_read(p.port, p.portno, start_sector, count, pool);
+    for (int i = 0; i < byte; i++) {
+        ((char *)buf)[i] = pool[i + offset];
+    }
+}
+
+int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf)
+{
+    start_cmd(port);
+    CMD_PARAMS params;
+    params.fis_type = 0x27;
+    params.cmd_type = WRITE_DMA_EXT;
+    params.cfis_len = 5;
+    params.lba = start_lba;
+    params.count = count;
+    params.dba = (uint64_t *)buf;
+    params.w = 1;
+    build_command(port, &params);
+    wait_interrupt(port);
+    clear_pxis(port);
+    clear_ghc_is(portno);
+    wait_pxci_clear(port);
+    return 1;
 }
 
 void check_ahci(void)
@@ -418,21 +460,22 @@ void check_ahci(void)
     put_hba_memory_register();
 
     struct port_and_portno p = probe_impl_port();
-
-    uint64_t buf[64];
+    
+    void *buf = kmalloc(8 * 64 + 2);
+    uint64_t *buf_aligned = align(buf, 2);
     for (int i = 0; i < 64; i++) {
-        buf[i] = 0xbeeeeeeeeeeeeeefull;
-        putn_serial(buf[i]);
+        buf_aligned[i] = 0xbeeeeeeeeeeeeeefull;
+        //putn_serial(buf[i]);
     }
-
+    
     ahci_read(p.port, p.portno, 2, 1, buf);
-
+    
     for (int i = 0; i < 64; i++) {
-        putn_serial(buf[i]);
+        putn_serial(buf_aligned[i]);
         puts_serial("\r\n");
     }
     puts_serial("\r\n");
-
+    
     puts_serial("check end\r\n");
 }
 

@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/BCAF98C9-22B0-3B4F-9CBD-C8A6B4DBCEE9EmuSec/BCAF98C9-22B0-3B4F-9CBD-C8A6B4DBCEE9SEC1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/Sec/Sec/OUTPUT/EmuSec.efi

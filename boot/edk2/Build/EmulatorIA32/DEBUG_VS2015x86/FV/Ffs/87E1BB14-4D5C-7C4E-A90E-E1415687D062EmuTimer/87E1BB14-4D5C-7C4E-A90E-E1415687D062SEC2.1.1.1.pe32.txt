@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/87E1BB14-4D5C-7C4E-A90E-E1415687D062EmuTimer/87E1BB14-4D5C-7C4E-A90E-E1415687D062SEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/TimerDxe/Timer/OUTPUT/EmuTimer.efi

@@ -2,7 +2,7 @@
 #define GRAPHICS_H
 
 #include <stdint.h>
-#include "../commom/boot_types.h"
+#include "../common/boot_types.h"
 
 typedef struct pix_format_t {
     uint8_t blue;

@@ -2,7 +2,7 @@
 #define KERNEL_H
 
 #include <stdint.h>
-#include "../commom/boot_types.h"
+#include "../common/boot_types.h"
 #include "util.h"
 #include "graphics.h"
 #include "mm.h"
@@ -13,7 +13,7 @@
 #include "device/ahci.h"
 #include "fs/ext2.h"
 
-#include "app.h"
+#include "app/app.h"
 
 #endif
 

@@ -1,1 +1,0 @@
-GenSec -s EFI_SECTION_PE32 -o /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/FV/Ffs/f3794b60-8985-11db-8e53-0040d02b1835Cpu/f3794b60-8985-11db-8e53-0040d02b1835SEC2.1.1.1.pe32 /home/totsugekitai/workspace/mywork/min_bootloader/edk2/Build/EmulatorIA32/DEBUG_VS2015x86/IA32/EmulatorPkg/CpuRuntimeDxe/Cpu/OUTPUT/Cpu.efi
