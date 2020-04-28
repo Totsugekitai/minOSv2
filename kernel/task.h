@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define THREAD_NUM      4   // Max threads number
+#define THREAD_NUM      20   // Max threads number
 #define STACK_LENGTH    0x1000
 
 struct thread_func {

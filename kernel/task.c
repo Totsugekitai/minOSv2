@@ -125,3 +125,7 @@ void thread_scheduler(void)
     switch_context(&threads[old_thread_index]->rsp, threads[current_index]->rsp);
 }
 
+int thread_pipe(int pipe[2])
+{
+    
+}
