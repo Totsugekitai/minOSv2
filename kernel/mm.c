@@ -46,7 +46,7 @@ void create_kpgtable(uint64_t *start_addr)
     int pml4_num = 1;
     int pgtable_size = TABLE_SIZE * (pt_num + pd_num + pdpt_num + pml4_num);
     // Initialize
-    mymemset((void *)start_addr, 0, pgtable_size);
+    memset((void *)start_addr, 0, pgtable_size);
 
     // create page table
     uint64_t *pml4 = start_addr;

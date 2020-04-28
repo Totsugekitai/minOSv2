@@ -112,8 +112,8 @@ static inline void alloc_mem_for_ports(uint32_t pi_list)
     cmd_list = align(cmd_list, 128); // align as 128 byte
     void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
     rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
-    //mymemset(cmd_list, 0, CMD_LIST_SIZE);
-    //mymemset(rcvd_fis, 0, RCVD_FIS_SIZE);
+    //memset(cmd_list, 0, CMD_LIST_SIZE);
+    //memset(rcvd_fis, 0, RCVD_FIS_SIZE);
     HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
     for (int i = 0; i < 32; i++) {
         if (pi_list >> i) {
@@ -236,7 +236,7 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 {
     int prdtl = (int)((params->count - 1) >> 4) + 1;
     //putsn_serial("memset size: ", 0x80 + 16 * prdtl);
-    mymemset(table_addr, 0, 0x80 + 16 * prdtl); // zero clear
+    memset(table_addr, 0, 0x80 + 16 * prdtl); // zero clear
     //puts_serial("memset end\n");
     HBA_CMD_TBL *table = (HBA_CMD_TBL *)table_addr;
 
@@ -294,7 +294,7 @@ static inline void build_cmd_table(CMD_PARAMS *params, uint64_t *table_addr)
 static inline void build_cmdheader(HBA_PORT *port, int slot, CMD_PARAMS *params)
 {
     HBA_CMD_HEADER *cmd_list = ((HBA_CMD_HEADER *)(uint64_t)port->clb + slot);
-    mymemset((void *)cmd_list, 0, 0x400);
+    memset((void *)cmd_list, 0, 0x400);
     if (!is_aligned(cmd_tbl_base, 128)) {
         puts_serial("cmd_tbl_base is not aligned\n");
         halt();

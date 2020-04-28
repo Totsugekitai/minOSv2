@@ -10,6 +10,7 @@ static uint32_t s_first_ino;
 static uint32_t s_inodes_per_group;
 static uint32_t bg_inode_table;
 
+// file type value
 #define BLOCK (block_size / 512)
 #define EXT2_FT_UNKNOWN  (0)
 #define EXT2_FT_REG_FILE (1)
@@ -19,6 +20,27 @@ static uint32_t bg_inode_table;
 #define EXT2_FT_FIFO     (5)
 #define EXT2_FT_SOCK     (6)
 #define EXT2_FT_SYMLINK  (7)
+
+// i_mode value
+#define EXT2_S_IFSOCK (0xc000)
+#define EXT2_S_IFLNK  (0xa000)
+#define EXT2_S_IFREG  (0x8000)
+#define EXT2_S_IFBLK  (0x6000)
+#define EXT2_S_IFDIR  (0x4000)
+#define EXT2_S_IFCHR  (0x2000)
+#define EXT2_S_IFIFO  (0x1000)
+#define EXT2_S_ISUID  (0x0800)
+#define EXT2_S_ISGID  (0x0400)
+#define EXT2_S_ISVTX  (0x0200)
+#define EXT2_S_IRUSR  (0x0100)
+#define EXT2_S_IWUSR  (0x0080)
+#define EXT2_S_IXUSR  (0x0040)
+#define EXT2_S_IRGRP  (0x0020)
+#define EXT2_S_IWGRP  (0x0010)
+#define EXT2_S_IXGRP  (0x0008)
+#define EXT2_S_IROTH  (0x0004)
+#define EXT2_S_IWOTH  (0x0002)
+#define EXT2_S_IXOTH  (0x0001)
 
 static inline void ext2_check_sblock(struct sblock_ext2 *sb)
 {
@@ -271,6 +293,11 @@ void ext2_read_dir_rec_from_inode(struct inode_ext2 *inode_table, int index, int
             ahci_read_byte(lde.inode * BLOCK, BLOCK, &i_node, sizeof(i_node), 0);
             int depth_next = rec_depth + 1;
             ext2_read_dir_rec_from_inode(inode_table, lde.inode - 1, depth_next);
+        } else if (lde.file_type == EXT2_FT_REG_FILE && (inode_table[lde.inode - 1].i_mode & EXT2_S_IRUSR)) {
+            char text_head[64] = {0};
+            ahci_read_byte(inode_table[lde.inode - 1].i_block[0] * BLOCK, BLOCK, text_head,
+                           sizeof(text_head) - 1, 0);
+            puts_serial(text_head);
         }
         offset += lde.rec_len;
     }

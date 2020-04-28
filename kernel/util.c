@@ -41,10 +41,10 @@ uint64_t mypow(uint64_t num, uint64_t p)
     return ans;
 }
 
-void *mymemset(void *buf, int ch, int n)
+void *memset(void *buf, int ch, unsigned long n)
 {
     char *b = (char *)buf;
-    for (int i = 0; i < n; i++) {
+    for (unsigned long i = 0; i < n; i++) {
         b[i] = ch;
     }
     return (void *)b;
