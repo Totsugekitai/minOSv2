@@ -1,1 +1,3 @@
 log/serial_output.log
+fs/kernel.elf
+fs/EFI/BOOT/BOOTX64.EFI
