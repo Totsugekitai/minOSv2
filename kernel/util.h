@@ -17,6 +17,7 @@ void busy_loop(void);
 void io_cli(void);
 void io_sti(void);
 void stihlt(void);
+void clihlt(void);
 extern uint8_t io_in8(uint16_t port);
 extern void io_out8(uint16_t port, uint8_t val);
 extern uint32_t io_in32(uint16_t port);

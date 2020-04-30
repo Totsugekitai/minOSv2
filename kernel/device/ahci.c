@@ -85,7 +85,7 @@ static inline void hba_reset(void)
     // during HR = 1, polling
     while (abar->ghc & 0x1) {
         puts_serial(".");
-        stihlt();
+        //stihlt();
     }
     puts_serial("\r\n");
 }
@@ -131,7 +131,7 @@ static inline void clear_ports_serr(uint32_t pi_list)
         if (pi_list >> i) {
             ports[i].serr |= 0x7ff0f03;    // clear by writing 1s to each bit
             while (ports[i].serr) {
-                stihlt();
+                //stihlt();
             }
         }
     }
@@ -145,7 +145,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
         if (pi_list >> i) {
             ports[i].is = 0xffffffff; // clear pending interrupt bits
             while (ports[i].is) {
-                stihlt();
+                //stihlt();
                 putsn_serial("PxIS clear cannot be finished: ", ports[i].is);
             }
         }
@@ -153,7 +153,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
     // second, IS.IPS is cleared to 0
     abar->is &= ~(abar->is);
     while (abar->is) {
-        stihlt();
+        //stihlt();
         puts_serial("GHC.IS.IPS clear cannot be finished.\r\n");
     }
     // enable PxIE bit
@@ -195,7 +195,7 @@ void ahci_init(void)
     while (pi != pidle) {
         putsn_serial("Implement port is: ", pi);
         putsn_serial("Implement port is not idle: ", pidle);
-        stihlt();
+        //stihlt();
     }
     puts_serial("AHCI init step 3 end.\r\n");
     // step 4: determine how many command slots the HBA supports
@@ -334,7 +334,7 @@ static inline void wait_interrupt(HBA_PORT *port)
 {
     //puts_serial("while waiting interrupt\r\n");
     while (port->is == 0) {
-        stihlt();
+        //stihlt();
     }
     //puts_serial("interrupt comes\r\n");
 }
@@ -344,7 +344,7 @@ static inline void clear_pxis(HBA_PORT *port)
     port->is |= port->is;
     //puts_serial("while clear PxIS\r\n");
     while (port->is) {
-        stihlt();
+        //stihlt();
     }
     //puts_serial("clearing PxIS is over\r\n");
 }
@@ -354,7 +354,7 @@ static inline void clear_ghc_is(int portno)
     abar->is |= 1 << portno;
     //puts_serial("while clear IS.IPS\r\n");
     while (abar->is) {
-        stihlt();
+        //stihlt();
     }
     //puts_serial("clearing IS.IPS is finished\r\n");
 }
@@ -365,7 +365,7 @@ static inline void start_cmd(HBA_PORT *port)
     port->cmd &= 0xfffffffe;    // PxCMD.ST = 0
     // wait until CR is cleared
     while (port->cmd & 0x8000) {
-        stihlt();
+        //stihlt();
     }
 
     // set FRE and ST
@@ -378,7 +378,7 @@ static inline void wait_pxci_clear(HBA_PORT *port)
 {
     //puts_serial("wait PxCI\r\n");
     while (port->ci) {
-        stihlt();
+        //stihlt();
     }
     //puts_serial("wait PxCI end\r\n");
 }
@@ -459,23 +459,21 @@ void check_ahci(void)
     ahci_init();    // AHCI initialization
     put_hba_memory_register();
 
-    struct port_and_portno p = probe_impl_port();
-    
     void *buf = kmalloc(8 * 64 + 2);
     uint64_t *buf_aligned = align(buf, 2);
     for (int i = 0; i < 64; i++) {
         buf_aligned[i] = 0xbeeeeeeeeeeeeeefull;
         //putn_serial(buf[i]);
     }
-    
-    ahci_read(p.port, p.portno, 2, 1, buf);
-    
+
+    ahci_read_byte(2, 1, buf_aligned, 8*64, 0);
+
     for (int i = 0; i < 64; i++) {
         putn_serial(buf_aligned[i]);
         puts_serial("\r\n");
     }
     puts_serial("\r\n");
-    
+
     puts_serial("check end\r\n");
 }
 

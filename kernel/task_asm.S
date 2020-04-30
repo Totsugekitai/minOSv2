@@ -33,6 +33,7 @@ init_stack:           # uint64_t *init_stack(uint64_t stack_bottom, uint64_t rip
 .align      16
 switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp);
 # push current task's general registers to stack
+    cli
     push    rbp
     push    r15
     push    r14
@@ -68,5 +69,52 @@ switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp
     pop     r15
     pop     rbp
 # return to next task
+    sti
+    ret
+
+.global     switch_context2
+.align      16
+switch_context2:   # void switch_context2(uint64_t *current_rsp, uint64_t next_rsp);
+# push current task's general registers to stack
+    cli
+    #hlt
+    push    rbp
+    push    r15
+    push    r14
+    push    r13
+    push    r12
+    push    r11
+    push    r10
+    push    r9
+    push    r8
+    push    rdi
+    push    rsi
+    push    rdx
+    push    rcx
+    push    rbx
+    push    rax
+# switch rsp
+    mov     [rdi],rsp
+    mov     rsp,rsi
+    #hlt
+# pop next task's general registers from stack
+    pop     rax
+    pop     rbx
+    pop     rcx
+    pop     rdx
+    pop     rsi
+    pop     rdi
+    pop     r8
+    pop     r9
+    pop     r10
+    pop     r11
+    pop     r12
+    pop     r13
+    pop     r14
+    pop     r15
+    pop     rbp
+# return to next task
+    #
+    sti
     ret
 

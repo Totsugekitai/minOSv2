@@ -29,6 +29,14 @@ void io_sti(void)
 void stihlt(void)
 {
     __asm__ volatile("sti");
+    __asm__ volatile("nop");
+    __asm__ volatile("hlt");
+}
+
+void clihlt(void)
+{
+    __asm__ volatile("cli");
+    __asm__ volatile("nop");
     __asm__ volatile("hlt");
 }
 
