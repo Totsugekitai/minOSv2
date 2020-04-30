@@ -53,6 +53,18 @@ void entry_point(bootinfo_t *binfo)
     halt();
 }
 
+void jikken(int argc, char **argv)
+{
+    UNUSED(argc);
+    UNUSED(argv);
+
+    create_thread(task_shikaku_ao, 0, 0);
+    create_thread(task_shikaku_ao, 0, 0);
+    create_thread(task_shikaku_ao, 0, 0);
+    create_thread(task_shikaku_ao, 0, 0);
+    create_thread(task_shikaku_ao, 0, 0);
+}
+
 void init(int argc, char **argv)
 {
     UNUSED(argc);
@@ -62,6 +74,7 @@ void init(int argc, char **argv)
     create_thread(task_shikaku_ao, 0, 0);
     create_thread(task_shikaku_aka, 0, 0);
     create_thread(check_ext2, 0, 0);
+    create_thread(jikken, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
     //halt();
 }

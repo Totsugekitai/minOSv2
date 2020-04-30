@@ -22,6 +22,7 @@ static struct thread empty_thread = {
                                      .func_info.argv = 0,
                                      .state = DEAD,
                                      .tid = -1,
+                                     .ptid = -1,
                                      .index = -1,
 };
 
@@ -31,6 +32,14 @@ static struct thread empty_thread = {
 */
 uint64_t timer_period = 0;
 uint64_t previous_interrupt = 0;
+
+int get_cur_thread_tid(void)
+{
+    io_cli();
+    int tid = tid_index_dict[cur_thread_index];
+    io_sti();
+    return tid;
+}
 
 int search_index_from_tid(int tid)
 {
@@ -82,10 +91,12 @@ void thread_run(struct thread *thread)
             threads[i] = thread;            // スレッドをi番目に入れて
             threads[i]->state = RUNNABLE;   // stateはRUNNABLE
             threads[i]->index = i;          // indexを登録
+            threads[i]->ptid = get_cur_thread_tid();
             threads[i]->tid = tid_global;
             tid_index_dict[i] = threads[i]->tid;
             tid_global++;
             putsn_serial("thread run! tid: ", threads[i]->tid);
+            putsn_serial("           ptid: ", threads[i]->ptid);
             break;
         }
     }
@@ -231,3 +242,4 @@ void switch_context_first(int tid)
     //putsp_serial("switch rsp: ", threads[index]->rsp);
     switch_context(0, threads[index]->rsp);
 }
+

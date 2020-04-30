@@ -26,6 +26,7 @@ struct thread {
     struct thread_func func_info;
     enum thread_state state;
     int tid;
+    int ptid;
     int index;
 };
 
