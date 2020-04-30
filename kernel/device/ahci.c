@@ -123,7 +123,8 @@ static inline void alloc_mem_for_ports(uint32_t pi_list)
             ports[i].cmd |= 0x10;  // PxCMD.FRE is set to 1
         }
     }
-    kfree_aligned(rcvd_fis, 0x1000);
+    //kfree_aligned(rcvd_fis, 0x1000);
+    //halt();
 }
 
 static inline void clear_ports_serr(uint32_t pi_list)

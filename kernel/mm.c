@@ -143,6 +143,7 @@ void *kmalloc_alignas(int size, int align_size)
         uint64_t diff = (uint64_t)true_ptr - (uint64_t)tmp;
         putsn_serial("malloc align diff: ", diff);
         ((uint64_t *)true_ptr)[-1] = diff;
+        strcpy(&((char *)true_ptr)[-16], "ALIGNED");
         return true_ptr;
     }
 }
@@ -179,10 +180,14 @@ void kfree_aligned(void *ptr, int align_size)
     if ((unsigned long)align_size <= sizeof(struct malloc_header)) {
         kfree(ptr);
     } else {
-        uint64_t diff = ((uint64_t *)ptr)[-1];
-        void *true_ptr = (void *)((char *)ptr - diff);
-        putsn_serial("kfree addr diff: ", diff);
-        putsp_serial("kfree true free address point: ", true_ptr);
-        kfree(true_ptr);
+        if (strcmp(&((char *)ptr)[-16], "ALIGNED") == 0) {
+            uint64_t diff = ((uint64_t *)ptr)[-1];
+            void *true_ptr = (void *)((char *)ptr - diff);
+            putsn_serial("kfree addr diff: ", diff);
+            putsp_serial("kfree true free address point: ", true_ptr);
+            kfree(true_ptr);
+        } else {
+            kfree(ptr);
+        }
     }
 }
