@@ -368,6 +368,7 @@ void check_ext2(int argc, char **argv)
 {
     UNUSED(argc);
     UNUSED(argv);
+    //halt();
 
     struct sblock_ext2 sb;
     ext2_check_sblock(&sb);
@@ -381,7 +382,6 @@ void check_ext2(int argc, char **argv)
 
     struct inode_ext2 *root = 0;
     create_inode_table2(root);
-    puts_serial("symbol\n");
-    //halt();
+
     ext2_read_dir_rec_from_inode(root, 1, 0);
 }

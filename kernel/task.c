@@ -105,8 +105,8 @@ static void thread_exec(struct thread *thread)
 {
     //putsp_serial("thread func info into thread_exec: ", thread->func_info.func);
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
-    kfree(thread->stack);
-    kfree(thread);
+    kfree_aligned(thread->stack, 16);
+    kfree_aligned(thread, sizeof(struct thread));
     thread_end(thread->index);
     thread_scheduler();
 }
@@ -118,8 +118,8 @@ struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
 {
     struct thread thread;
 
-    void *stack = kmalloc(STACK_LENGTH + 16);
-    thread.stack = (uint64_t *)align(stack, 16);
+    uint64_t *stack = kmalloc_alignas(STACK_LENGTH, 16);
+    thread.stack = stack;
     thread.rsp = (uint64_t *)(thread.stack + STACK_LENGTH);
     thread.rip = (uint64_t *)thread_exec;
     thread.func_info.func = func;
@@ -135,8 +135,8 @@ struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
 
 void thread_gen2(struct thread *thread, void (*func)(int, char**), int argc, char **argv)
 {
-    void *stack = kmalloc(STACK_LENGTH + 16);
-    thread->stack = (uint64_t *)align(stack, 16);
+    uint64_t *stack = kmalloc_alignas(STACK_LENGTH, 16);
+    thread->stack = stack;
     thread->rsp = (uint64_t *)(thread->stack + STACK_LENGTH);
     thread->rip = (uint64_t *)thread_exec;
     thread->func_info.func = func;
@@ -149,8 +149,8 @@ void thread_gen2(struct thread *thread, void (*func)(int, char**), int argc, cha
 int create_thread(void (*func)(int, char**), int argc, char **argv)
 {
     io_cli();
-    void *mem = kmalloc(sizeof(struct thread) + 16);
-    struct thread *t = align(mem, 16);
+    void *mem = kmalloc_alignas(sizeof(struct thread), sizeof(struct thread));
+    struct thread *t = mem;
     thread_gen2(t, func, argc, argv);
     thread_run(t);
     io_sti();

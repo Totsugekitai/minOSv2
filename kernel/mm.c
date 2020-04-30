@@ -128,6 +128,13 @@ void *kmalloc(int size)
     return 0;
 }
 
+void *kmalloc_alignas(int size, int align_size)
+{
+    void *tmp = kmalloc(size + align_size);
+    void *true_ptr = align(tmp, align_size);
+    return true_ptr;
+}
+
 void kfree(void *ptr)
 {
     struct malloc_header *q;
@@ -153,4 +160,10 @@ void kfree(void *ptr)
     }
 
     freep = q;
+}
+
+void kfree_aligned(void *ptr, int align_size)
+{
+    void *true_ptr = (void *)((char *)ptr - align_size);
+    kfree(true_ptr);
 }
