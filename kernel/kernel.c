@@ -76,5 +76,5 @@ void init(int argc, char **argv)
     create_thread(check_ext2, 0, 0);
     create_thread(jikken, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
-    //halt();
+    halt();
 }

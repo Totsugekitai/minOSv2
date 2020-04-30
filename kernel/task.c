@@ -117,7 +117,7 @@ static void thread_exec(struct thread *thread)
     //putsp_serial("thread func info into thread_exec: ", thread->func_info.func);
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
     kfree_aligned(thread->stack, 16);
-    kfree_aligned(thread, sizeof(struct thread));
+    kfree_aligned(thread, 16);
     thread_end(thread->index);
     thread_scheduler();
 }
@@ -160,7 +160,7 @@ void thread_gen2(struct thread *thread, void (*func)(int, char**), int argc, cha
 int create_thread(void (*func)(int, char**), int argc, char **argv)
 {
     io_cli();
-    void *mem = kmalloc_alignas(sizeof(struct thread), sizeof(struct thread));
+    void *mem = kmalloc_alignas(sizeof(struct thread), 16);
     struct thread *t = mem;
     thread_gen2(t, func, argc, argv);
     thread_run(t);

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "util.h"
 #include "mm.h"
+#include "device/serial.h"
 
 /* Segmentation */
 uint64_t *gdt = (uint64_t *)0x80;
@@ -85,11 +86,15 @@ void init_kpaging(void)
 #define BLK_SIZE (sizeof(struct malloc_header))
 struct malloc_header base = { 0, 0 };
 #define HEAP_SIZE (0x400000)
-struct malloc_header kheap[HEAP_SIZE]; // heap area
+extern uint64_t __kheap_start;
+struct malloc_header *kheap;
+//struct malloc_header kheap[HEAP_SIZE]; // heap area
 struct malloc_header *freep = 0;
 
 void init_kheap(void)
 {
+    kheap = (struct malloc_header *)&__kheap_start;
+    putsp_serial("kheap address: ", kheap);
     kheap[0].next = &base;
     kheap[0].size = HEAP_SIZE;
     base.next = &kheap[0];
@@ -131,8 +136,15 @@ void *kmalloc(int size)
 void *kmalloc_alignas(int size, int align_size)
 {
     void *tmp = kmalloc(size + align_size);
-    void *true_ptr = align(tmp, align_size);
-    return true_ptr;
+    if (is_aligned(tmp, align_size)) {
+        return tmp;
+    } else {
+        void *true_ptr = align(tmp, align_size);
+        uint64_t diff = (uint64_t)true_ptr - (uint64_t)tmp;
+        putsn_serial("malloc align diff: ", diff);
+        ((uint64_t *)true_ptr)[-1] = diff;
+        return true_ptr;
+    }
 }
 
 void kfree(void *ptr)
@@ -164,6 +176,13 @@ void kfree(void *ptr)
 
 void kfree_aligned(void *ptr, int align_size)
 {
-    void *true_ptr = (void *)((char *)ptr - align_size);
-    kfree(true_ptr);
+    if ((unsigned long)align_size <= sizeof(struct malloc_header)) {
+        kfree(ptr);
+    } else {
+        uint64_t diff = ((uint64_t *)ptr)[-1];
+        void *true_ptr = (void *)((char *)ptr - diff);
+        putsn_serial("kfree addr diff: ", diff);
+        putsp_serial("kfree true free address point: ", true_ptr);
+        kfree(true_ptr);
+    }
 }

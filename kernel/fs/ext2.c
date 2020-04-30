@@ -257,6 +257,10 @@ struct inode_table_ext2 create_inode_table(void)
     uint32_t inodes_per_block = block_size / sizeof(struct inode_ext2);
     putsn_serial("inodes_per_block: ", inodes_per_block);
     putsn_serial("block_size: ", block_size);
+    if (block_size == 0) {
+        puts_serial("block size zero!!!\n");
+        halt();
+    }
     uint32_t nblock_inode_table = s_inodes_per_group / inodes_per_block;
     if (s_inodes_per_group % inodes_per_block) {
         nblock_inode_table++;

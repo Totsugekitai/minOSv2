@@ -110,8 +110,9 @@ static inline void alloc_mem_for_ports(uint32_t pi_list)
 {
     void *cmd_list = kmalloc(CMD_LIST_SIZE + 128);
     cmd_list = align(cmd_list, 128); // align as 128 byte
-    void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
-    rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
+    //void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
+    //rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
+    void *rcvd_fis = kmalloc_alignas(RCVD_FIS_SIZE, 0x1000);
     //memset(cmd_list, 0, CMD_LIST_SIZE);
     //memset(rcvd_fis, 0, RCVD_FIS_SIZE);
     HBA_PORT *ports = (HBA_PORT *)&(abar->ports[0]);
@@ -122,6 +123,7 @@ static inline void alloc_mem_for_ports(uint32_t pi_list)
             ports[i].cmd |= 0x10;  // PxCMD.FRE is set to 1
         }
     }
+    kfree_aligned(rcvd_fis, 0x1000);
 }
 
 static inline void clear_ports_serr(uint32_t pi_list)
