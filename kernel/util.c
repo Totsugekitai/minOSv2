@@ -68,22 +68,6 @@ void *memcpy(void *buf1, const void *buf2, unsigned long n)
     return buf1;
 }
 
-int is_aligned(void *addr, int align)
-{
-    uint64_t addr_num = (uint64_t)addr;
-    if (addr_num % align) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-void *align(void *addr, int align)
-{
-    uint64_t addr_num = (uint64_t)addr;
-    return (void *)(addr_num + (align - (addr_num % align)));
-}
-
 extern uint64_t __bss_start, __bss_end;
 void init_bss(void)
 {

@@ -109,7 +109,7 @@ static uint32_t probe_idle_port(uint32_t pi)
 static inline void alloc_mem_for_ports(uint32_t pi_list)
 {
     void *cmd_list = kmalloc(CMD_LIST_SIZE + 128);
-    cmd_list = align(cmd_list, 128); // align as 128 byte
+    cmd_list = alignas(cmd_list, 128); // align as 128 byte
     //void *rcvd_fis = kmalloc(RCVD_FIS_SIZE + 0x1000);
     //rcvd_fis = align(rcvd_fis, 0x1000); // align as 4KB
     void *rcvd_fis = kmalloc_alignas(RCVD_FIS_SIZE, 0x1000);
@@ -177,7 +177,7 @@ static inline void enable_ahci_interrupt(uint32_t pi_list)
 void ahci_init(void)
 {
     cmd_tbl_base = kmalloc(CMD_TBL_SIZE + 128);
-    cmd_tbl_base = align(cmd_tbl_base, 128);
+    cmd_tbl_base = alignas(cmd_tbl_base, 128);
     if ((uint64_t)cmd_tbl_base % 128 == 0) {
         puts_serial("cmd_tbl_base is aligned as 128 byte\n");
     }
@@ -463,7 +463,7 @@ void check_ahci(void)
     put_hba_memory_register();
 
     void *buf = kmalloc(8 * 64 + 2);
-    uint64_t *buf_aligned = align(buf, 2);
+    uint64_t *buf_aligned = alignas(buf, 2);
     for (int i = 0; i < 64; i++) {
         buf_aligned[i] = 0xbeeeeeeeeeeeeeefull;
         //putn_serial(buf[i]);

@@ -83,22 +83,34 @@ void init_kpaging(void)
     load_pgtable(start_addr);
 }
 
-#define BLK_SIZE (sizeof(struct malloc_header))
+int is_aligned(void *addr, int align)
+{
+    uint64_t addr_num = (uint64_t)addr;
+    if (addr_num % align) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+void *alignas(void *addr, int align)
+{
+    uint64_t addr_num = (uint64_t)addr;
+    return (void *)(addr_num + (align - (addr_num % align)));
+}
+
 struct malloc_header base = { 0, 0 };
-#define HEAP_SIZE (0x400000)
 extern uint64_t __kheap_start;
 struct malloc_header *kheap;
-//struct malloc_header kheap[HEAP_SIZE]; // heap area
 struct malloc_header *freep = 0;
 
-void init_kheap(void)
+void init_kheap(struct malloc_header *kheap_start, struct malloc_header *base)
 {
-    kheap = (struct malloc_header *)&__kheap_start;
-    putsp_serial("kheap address: ", kheap);
-    kheap[0].next = &base;
+    kheap = kheap_start;
+    kheap[0].next = base;
     kheap[0].size = HEAP_SIZE;
-    base.next = &kheap[0];
-    base.size = 0;
+    base->next = &kheap[0];
+    base->size = 0;
 }
 
 void *kmalloc(int size)
@@ -139,9 +151,9 @@ void *kmalloc_alignas(int size, int align_size)
     if (is_aligned(tmp, align_size)) {
         return tmp;
     } else {
-        void *true_ptr = align(tmp, align_size);
+        void *true_ptr = alignas(tmp, align_size);
         uint64_t diff = (uint64_t)true_ptr - (uint64_t)tmp;
-        putsn_serial("malloc align diff: ", diff);
+        //putsn_serial("malloc align diff: ", diff);
         ((uint64_t *)true_ptr)[-1] = diff;
         strcpy(&((char *)true_ptr)[-16], "ALIGNED");
         return true_ptr;
@@ -183,8 +195,8 @@ void kfree_aligned(void *ptr, int align_size)
         if (strcmp(&((char *)ptr)[-16], "ALIGNED") == 0) {
             uint64_t diff = ((uint64_t *)ptr)[-1];
             void *true_ptr = (void *)((char *)ptr - diff);
-            putsn_serial("kfree addr diff: ", diff);
-            putsp_serial("kfree true free address point: ", true_ptr);
+            //putsn_serial("kfree addr diff: ", diff);
+            //putsp_serial("kfree true free address point: ", true_ptr);
             kfree(true_ptr);
         } else {
             kfree(ptr);

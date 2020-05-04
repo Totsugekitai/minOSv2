@@ -25,8 +25,6 @@ extern void io_out32(uint16_t port, uint32_t val);
 uint64_t mypow(uint64_t num, uint64_t p);
 void *memset(void *buf, int ch, unsigned long n);
 void *memcpy(void *buf1, const void *buf2, unsigned long n);
-int is_aligned(void *addr, int align);
-void *align(void *addr, int align);
 void init_bss(void);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, unsigned long n);

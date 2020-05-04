@@ -7,6 +7,9 @@ extern const pix_format_t green;
 extern const pix_format_t blue;
 
 extern uint64_t tick;
+extern uint64_t __kheap_start;
+extern struct malloc_header base;
+extern struct malloc_header *kheap;
 
 void init(int argc, char **argv);
 
@@ -21,7 +24,7 @@ void entry_point(bootinfo_t *binfo)
     init_idt();
     init_pic();
 
-    init_kheap();
+    init_kheap((struct malloc_header *)&__kheap_start, &base);
 
     paint_background(white);
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
@@ -35,19 +38,7 @@ void entry_point(bootinfo_t *binfo)
 
     schedule_period_init(50);
 
-    //struct thread thread0 = thread_gen(task_shikaku_aka, 0, 0);
-    //struct thread thread1 = thread_gen(task_shikaku_ao, 0, 0);
-    //struct thread thread2 = thread_gen(check_ext2, 0, 0);
-    //
-    //thread_run(&thread0);
-    //thread_run(&thread1);
-    //thread_run(&thread2);
-
     int tid = create_thread(init, 0, 0);
-    //create_thread(task_shikaku_ao, 0, 0);
-    //create_thread(check_ext2, 0, 0);
-
-    //switch_context(0, thread0.rsp);
     switch_context_first(tid);
 
     halt();
