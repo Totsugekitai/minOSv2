@@ -6,9 +6,13 @@ RUN apt-get update && apt-get install -y \
     make \
     gcc-multilib \
     clang \
-    lld
+    lld \
+    git
 
-RUN mkdir common kernel tests
+RUN mkdir common kernel tests && \
+    git clone https://github.com/google/googletest.git tests/googletest && \
+    cd tests/googletest && git checkout release-1.10.0
+
 COPY common/ ./common/
 COPY kernel/ ./kernel/
 COPY tests/ ./tests/
