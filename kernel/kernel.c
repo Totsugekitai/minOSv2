@@ -24,7 +24,7 @@ void entry_point(bootinfo_t *binfo)
     init_idt();
     init_pic();
 
-    init_kheap((struct malloc_header *)&__kheap_start, &base);
+    init_kheap((struct malloc_header *)&__kheap_start);
 
     paint_background(white);
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
