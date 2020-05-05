@@ -23,3 +23,6 @@ malloc-test: ../kernel/mm.c malloc-test.cpp
 clean:
 > @rm -rf *.o
 > @rm -rf malloc-test
+
+gtest-gen:
+> python ../../googletest-release-1.10.0/googletest/scripts/fuse_gtest_files.py ./

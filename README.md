@@ -82,6 +82,16 @@ minOSv2は一部の処理について単体テストができます。
 
 ```
 
+配置したら、次のコマンドを入力します。
+
+``` shell
+$ cd path/to/minOSv2/tests
+$ make gtest-gen
+```
+
+これで `tests` ディレクトリ内に `gtest` ディレクトリが生成されます。
+これはテストに用いられます。
+
 ### テスト方法
 
 `minOSv2` のルートディレクトリで `make test` です。
