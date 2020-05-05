@@ -309,7 +309,7 @@ void create_inode_table2(struct inode_ext2 *inode)
     for (uint32_t i = 0; i < nblock_inode_table; i++) {
         //struct inode_ext2 inodes[inodes_per_block];
         void *m = kmalloc(sizeof(struct inode_ext2) * inodes_per_block + 2);
-        struct inode_ext2 *inodes = alignas(m, 2);
+        struct inode_ext2 *inodes = align_as(m, 2);
         ahci_read_byte((bg_inode_table + i) * BLOCK, BLOCK, inodes,
                        sizeof(struct inode_ext2) * inodes_per_block, 0);
         putsn_serial("inode table read: ", i);

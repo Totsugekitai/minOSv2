@@ -1,7 +1,10 @@
 #include <stdint.h>
 #include "util.h"
 #include "mm.h"
+
+#ifndef MINOS_TEST
 #include "device/serial.h"
+#endif
 
 /* Segmentation */
 uint64_t *gdt = (uint64_t *)0x80;
@@ -9,6 +12,7 @@ uint64_t *gdt = (uint64_t *)0x80;
 extern void load_gdt(uint64_t *base, int limit);
 extern void intersegment_jump(uint16_t cs);
 
+#ifndef MINOS_TEST
 static uint64_t make_segm_desc(uint64_t type, uint64_t dpl)
 {
     // base and limit is 0
@@ -34,6 +38,7 @@ void init_gdt(void)
     load_gdt(gdt, GDT_LIMIT);
     intersegment_jump(1 << 3);
 }
+#endif
 
 /* Paging functions */
 #define ENTRY_NUM   (512)
@@ -73,6 +78,7 @@ void create_kpgtable(uint64_t *start_addr)
     }
 }
 
+#ifndef MINOS_TEST
 /* Initialization of kernel page table.
  * Kernel page size is 4KB.
 */
@@ -82,6 +88,7 @@ void init_kpaging(void)
     create_kpgtable(start_addr);
     load_pgtable(start_addr);
 }
+#endif
 
 int is_aligned(void *addr, int align)
 {
@@ -93,24 +100,24 @@ int is_aligned(void *addr, int align)
     }
 }
 
-void *alignas(void *addr, int align)
+void *align_as(void *addr, int align)
 {
     uint64_t addr_num = (uint64_t)addr;
     return (void *)(addr_num + (align - (addr_num % align)));
 }
 
 struct malloc_header base = { 0, 0 };
-extern uint64_t __kheap_start;
+//extern uint64_t __kheap_start;
 struct malloc_header *kheap;
 struct malloc_header *freep = 0;
 
-void init_kheap(struct malloc_header *kheap_start, struct malloc_header *base)
+void init_kheap(struct malloc_header *kheap_start)
 {
     kheap = kheap_start;
-    kheap[0].next = base;
+    kheap[0].next = &base;
     kheap[0].size = HEAP_SIZE;
-    base->next = &kheap[0];
-    base->size = 0;
+    base.next = &kheap[0];
+    base.size = 0;
 }
 
 void *kmalloc(int size)
@@ -151,7 +158,7 @@ void *kmalloc_alignas(int size, int align_size)
     if (is_aligned(tmp, align_size)) {
         return tmp;
     } else {
-        void *true_ptr = alignas(tmp, align_size);
+        void *true_ptr = align_as(tmp, align_size);
         uint64_t diff = (uint64_t)true_ptr - (uint64_t)tmp;
         //putsn_serial("malloc align diff: ", diff);
         ((uint64_t *)true_ptr)[-1] = diff;

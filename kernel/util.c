@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include "util.h"
 
-#include "device/serial.h"
-
 // ココらへんの単純な関数はアトでマクロにするかも
 void halt(void)
 {

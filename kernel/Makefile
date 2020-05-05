@@ -36,7 +36,7 @@ int_handler.o: int_handler.c
 > clang $(CFLAGS) -c -o $@ $<
 
 clean:
-> @rm -f *.o *.elf *.map
+> @rm -f *.o *.gch *.elf *.map
 > @rm -f device/*.o
 > @rm -f fs/*.o
 > @rm -f app/*.o
