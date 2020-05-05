@@ -1,2 +1,4 @@
 *.h linguist-language=C
 *.S linguist-language=Assembly
+
+tests/googletest/* linguist-vendored=false

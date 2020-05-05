@@ -26,6 +26,7 @@ TEST_F(mallocTest, malloc_alloc_test) {
     int *int_array_alloc = (int *)kmalloc(sizeof(int) * 4);
     char *char_array_alloc = (char *)kmalloc(sizeof(char) * 17);
 
+    //ASSERT_EQ(1, 0);
     ASSERT_EQ(0, ((uint64_t)char_alloc % 16));
     ASSERT_EQ(0, ((uint64_t)int_alloc % 16));
     ASSERT_EQ(0, ((uint64_t)long_alloc % 16));
