@@ -63,3 +63,25 @@ TOOL_CHAIN_TAG        = GCC5
 ## 掃除
 
 `minOSv2` のルートディレクトリで `make clean` です。
+
+## テスト
+
+minOSv2は一部の処理について単体テストができます。
+
+テストには [GoogleTest](https://github.com/google/googletest) を用いています。
+
+### テスト環境の構築
+
+`minOSv2` のディレクトリと同じ場所に `googletest-release-1.10.0` をダウンロードして配置します。
+`googletest-release-1.10.0` のダウンロードは [こちら](https://github.com/google/googletest/archive/release-1.10.0.zip)
+
+``` text
+|- minOSv2/
+|
+|- googletest-release-1.10.0/
+
+```
+
+### テスト方法
+
+`minOSv2` のルートディレクトリで `make test` です。
