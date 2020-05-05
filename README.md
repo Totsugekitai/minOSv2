@@ -75,14 +75,8 @@ minOSv2は一部の処理について単体テストができます。
 
 ### テスト環境の構築
 
-`minOSv2` のディレクトリと同じ場所に `googletest-release-1.10.0` をダウンロードして配置します。
-`googletest-release-1.10.0` のダウンロードは [こちら](https://github.com/google/googletest/archive/release-1.10.0.zip)
-
-``` text
-|- minOSv2/
-|
-|- googletest-release-1.10.0/
-```
+`minOSv2` のルートディレクトリで、 `git submodule update --init` を打ちます。
+すると `tests` ディレクトリに `googletest` がクローンされます。
 
 配置したら、次のコマンドを入力します。
 
