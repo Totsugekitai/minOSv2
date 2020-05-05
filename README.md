@@ -1,5 +1,8 @@
 # minOSv2
 
+![build](https://github.com/Totsugekitai/minOSv2/workflows/build/badge.svg)
+![test](https://github.com/Totsugekitai/minOSv2/workflows/test/badge.svg)
+
 x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 [minOS](https://github.com/Totsugekitai/minOS) を書き直して作られています。
