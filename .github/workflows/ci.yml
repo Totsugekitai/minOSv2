@@ -21,4 +21,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: make test
       run: |
-        docker build Dockerfile-test -t minosv2_test .
+        docker build -f Dockerfile-test -t minosv2_test .
