@@ -21,4 +21,5 @@ malloc-test: ../kernel/mm.c malloc-test.cpp
 > ./$@
 
 clean:
+> @rm -rf *.o
 > @rm -rf malloc-test
