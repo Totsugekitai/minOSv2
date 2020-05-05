@@ -13,10 +13,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: make kernel
-      run: make kernel
+      run: |
+        apt install gcc-multilib |
+        make kernel
   test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - name: make test
-      run: make test
+      run: |
+        apt install gcc-multilib |
+        make test
