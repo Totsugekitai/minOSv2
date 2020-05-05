@@ -1,4 +1,4 @@
-name: minOSv2 CI
+name: build
 
 on:
   push:
@@ -15,10 +15,3 @@ jobs:
     - name: make kernel
       run: |
         docker build -f Dockerfile-build -t minosv2_build .
-  test:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: make test
-      run: |
-        docker build -f Dockerfile-test -t minosv2_test .
