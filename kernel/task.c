@@ -116,8 +116,8 @@ static void thread_exec(struct thread *thread)
 {
     //putsp_serial("thread func info into thread_exec: ", thread->func_info.func);
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
-    kfree_aligned(thread->stack, 16);
-    kfree_aligned(thread, 16);
+    kfree(thread->stack);
+    kfree(thread);
     thread_end(thread->index);
     thread_scheduler();
 }

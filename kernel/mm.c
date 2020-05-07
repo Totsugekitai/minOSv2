@@ -93,10 +93,10 @@ void init_kpaging(void)
 int is_aligned(void *addr, int align)
 {
     uint64_t addr_num = (uint64_t)addr;
-    if (addr_num % align) {
-        return 0;
-    } else {
+    if (addr_num % align == 0 && addr_num != 0) {
         return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -107,16 +107,18 @@ void *align_as(void *addr, int align)
 }
 
 struct malloc_header base = { 0, 0 };
-//extern uint64_t __kheap_start;
 struct malloc_header *kheap;
-struct malloc_header *freep = 0;
+struct malloc_header *freep = &base;
 
 void init_kheap(struct malloc_header *kheap_start)
 {
     kheap = kheap_start;
+    // zero clear
+    //memset(kheap, 0, HEAP_SIZE);
+
     kheap[0].next = &base;
-    kheap[0].size = HEAP_SIZE;
-    base.next = &kheap[0];
+    kheap[0].size = HEAP_SIZE / sizeof(struct malloc_header);
+    base.next = kheap;
     base.size = 0;
 }
 
@@ -125,19 +127,19 @@ void *kmalloc(int size)
     uint64_t nunits = ((size + sizeof(struct malloc_header) - 1) / sizeof(struct malloc_header)) + 1;
 
     // search free point
-    struct malloc_header *p, *q;
-    if ((q = freep) == 0) {
-        freep = q = &base;
-        base.size = 0;
-        base.next = kheap;
-        base.next->size = HEAP_SIZE / sizeof(struct malloc_header);
-        base.next->next = &base;
-    }
+    struct malloc_header *p, *q = freep;
+    //if ((q = freep) == 0) {
+    //    freep = q = &base;
+    //    base.size = 0;
+    //    base.next = kheap;
+    //    base.next->size = HEAP_SIZE / sizeof(struct malloc_header);
+    //    base.next->next = &base;
+    //}
     for (p = q->next;; q = p, p = p->next) {
-        if (p->size >= nunits) {
-            if (p->size == nunits) {
+        if (p->size >= nunits) { // 空きブロックが見つかった
+            if (p->size == nunits) { // サイズがピッタリ
                 q->next = p->next;
-            } else {
+            } else {                 // サイズがデカい
                 p->size -= nunits;
                 p += p->size;
                 p->size = nunits;
@@ -152,31 +154,70 @@ void *kmalloc(int size)
     return 0;
 }
 
+struct malloc_header *get_aligned_address(struct malloc_header *start, int block_length, int align_size)
+{
+    struct malloc_header *i;
+    for (i = start + block_length - 1; i > start; i--) {
+        if ((uint64_t)i % align_size == 0) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 void *kmalloc_alignas(int size, int align_size)
 {
-    void *tmp = kmalloc(size + align_size);
-    if (is_aligned(tmp, align_size)) {
-        return tmp;
-    } else {
-        void *true_ptr = align_as(tmp, align_size);
-        uint64_t diff = (uint64_t)true_ptr - (uint64_t)tmp;
-        //putsn_serial("malloc align diff: ", diff);
-        ((uint64_t *)true_ptr)[-1] = diff;
-        strcpy(&((char *)true_ptr)[-16], "ALIGNED");
-        return true_ptr;
+    if (align_size <= 16) {
+        return kmalloc(size);
     }
+
+    uint64_t nunits = ((size + sizeof(struct malloc_header) - 1) / sizeof(struct malloc_header)) + 1;
+
+    // search free point
+    struct malloc_header *p, *q = freep;
+
+    struct malloc_header *aligned_addr = 0;
+    for (p = q->next;; q = p, p = p->next) {
+        // 空きブロック中にアライメントされたアドレスがあるかどうか
+        if ((aligned_addr = get_aligned_address(p, p->size, align_size))) {
+            if (aligned_addr - 1 + nunits <= p + p->size) { // 十分な大きさか
+                if (aligned_addr - 1 + nunits == p + p->size) {//後ろがピッタリ
+                    p->size -= nunits;
+                    aligned_addr[-1].size = nunits;
+                } else {                                                                      // 後ろがデカい
+                    int fdiff_block = (int)(&aligned_addr[-1] - p);
+                    int bdiff_block = (int)((p + p->size) - (&aligned_addr[-1] - nunits));
+                    p->size = fdiff_block;
+                    aligned_addr[-1].size = nunits;
+                    struct malloc_header *next_p = p + fdiff_block + nunits;
+                    next_p->size = bdiff_block;
+                    next_p->next = p->next;
+                    p->next = next_p;
+                }
+                freep = q;
+                return (void *)aligned_addr;
+            }
+        }
+        if (p == freep) {
+            return 0;
+        }
+    }
+    return 0;
 }
 
 void kfree(void *ptr)
 {
-    struct malloc_header *q;
-    struct malloc_header *p = (struct malloc_header *)ptr - 1;
+    struct malloc_header *q; // free するブロックの直前の空きブロック
+    struct malloc_header *p = (struct malloc_header *)ptr - 1; // free するブロック
+
+    // q を探す
     for (q = freep; !(p > q && p < q->next); q = q->next) {
         if (q >= q->next && (p > q || p < q->next)) {
             break;
         }
     }
 
+    // free するブロックの後ろが空いている場合
     if (p + p->size == q->next) {
         p->size += q->next->size;
         p->next = q->next->next;
@@ -184,6 +225,7 @@ void kfree(void *ptr)
         p->next = q->next;
     }
 
+    // free するブロックの前が空いている場合
     if (q + q->size == p) {
         q->size += p->size;
         q->next = p->next;
@@ -194,19 +236,12 @@ void kfree(void *ptr)
     freep = q;
 }
 
-void kfree_aligned(void *ptr, int align_size)
+int count_free_block(void)
 {
-    if ((unsigned long)align_size <= sizeof(struct malloc_header)) {
-        kfree(ptr);
-    } else {
-        if (strcmp(&((char *)ptr)[-16], "ALIGNED") == 0) {
-            uint64_t diff = ((uint64_t *)ptr)[-1];
-            void *true_ptr = (void *)((char *)ptr - diff);
-            //putsn_serial("kfree addr diff: ", diff);
-            //putsp_serial("kfree true free address point: ", true_ptr);
-            kfree(true_ptr);
-        } else {
-            kfree(ptr);
-        }
+    int count = 0;
+    struct malloc_header *p = &base;
+    for (;p->next != &base; p = p->next) {
+        count++;
     }
+    return count;
 }

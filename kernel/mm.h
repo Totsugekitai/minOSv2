@@ -28,6 +28,7 @@ void init_kheap(struct malloc_header *kheap_start);
 void *kmalloc(int size);
 void *kmalloc_alignas(int size, int align_size);
 void kfree(void *ptr);
-void kfree_aligned(void *ptr, int align_size);
+//void kfree_aligned(void *ptr, int align_size);
+int count_free_block(void);
 
 #endif

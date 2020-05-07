@@ -23,13 +23,15 @@ void entry_point(bootinfo_t *binfo)
     init_kpaging();
     init_idt();
     init_pic();
+    puts_serial("Serial ok\r\n");
+    paint_background(white);
+
+    putsp_serial("frame buffer addr: ", binfo->vinfo.fb);
+    //putsp_serial("heap addr: ", (struct malloc_header *)&__kheap_start);
 
     init_kheap((struct malloc_header *)&__kheap_start);
-
-    paint_background(white);
+    puts_serial("heap setting OK\n");
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
-
-    puts_serial("Serial ok\r\n");
 
     check_all_buses();
     check_ahci();
