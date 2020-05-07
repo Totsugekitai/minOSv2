@@ -18,4 +18,5 @@ COPY kernel/ ./kernel/
 COPY tests/ ./tests/
 COPY Makefile ./
 
-RUN make -B test
+RUN python tests/googletest/googletest/scripts/fuse_gtest_files.py tests/ && \
+    make -B test
