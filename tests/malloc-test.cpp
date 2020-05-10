@@ -34,7 +34,7 @@ TEST_F(mallocTest, kmalloc_kfree_test) {
     for (int i = 0; i < 17; i++) {
         char_array_alloc[i] = 'B';
     }
-
+    malloc(123);
     ASSERT_EQ(1, is_aligned(char_alloc, 16));
     ASSERT_EQ(1, is_aligned(int_alloc, 16));
     ASSERT_EQ(1, is_aligned(long_alloc, 16));
@@ -75,5 +75,8 @@ TEST_F(mallocTest, kmalloc_kfree_test) {
     printf("aligned address: %p\n", aligned_4KB);
     ASSERT_EQ(1, is_aligned(aligned_4KB, 0x1000));
     kfree(aligned_4KB);
+    ASSERT_EQ(1, count_free_block());
+
+    uint64_t *aligned_4KB_0x1000B  = (uint64_t *)kmalloc_alignas(0x1000, 0x1000);
     ASSERT_EQ(1, count_free_block());
 }

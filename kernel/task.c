@@ -8,10 +8,10 @@ extern uint64_t tick;
 
 struct thread *threads[THREAD_NUM];
 int cur_thread_index = 0;
-int tid_global = 0;
+tid_t tid_global = 0;
 
 // for tid -> index conversion
-static int tid_index_dict[THREAD_NUM] = {-1};
+static tid_t tid_index_dict[THREAD_NUM] = {-1};
 
 static struct thread empty_thread = {
                                      .stack = 0,
@@ -33,15 +33,15 @@ static struct thread empty_thread = {
 uint64_t timer_period = 0;
 uint64_t previous_interrupt = 0;
 
-int get_cur_thread_tid(void)
+tid_t get_cur_thread_tid(void)
 {
     io_cli();
-    int tid = tid_index_dict[cur_thread_index];
+    tid_t tid = tid_index_dict[cur_thread_index];
     io_sti();
     return tid;
 }
 
-int search_index_from_tid(int tid)
+int search_index_from_tid(tid_t tid)
 {
     int ret = -1;
     for (int i = 0; i < THREAD_NUM; i++) {
@@ -94,7 +94,9 @@ void thread_run(struct thread *thread)
             threads[i]->ptid = get_cur_thread_tid();
             threads[i]->tid = tid_global;
             tid_index_dict[i] = threads[i]->tid;
+            io_cli();
             tid_global++;
+            io_sti();
             putsn_serial("thread run! tid: ", threads[i]->tid);
             putsn_serial("           ptid: ", threads[i]->ptid);
             break;
@@ -206,37 +208,7 @@ void thread_scheduler(void)
     switch_context(&threads[old_thread_index]->rsp, threads[cur_thread_index]->rsp);
 }
 
-void thread_scheduler2(void)
-{
-    io_cli();
-    int old_thread_index = cur_thread_index;
-    // update current_index
-    int i = 1;
-    while (cur_thread_index == old_thread_index) {
-        if (threads[(cur_thread_index + i) % THREAD_NUM]->state == RUNNABLE) {
-            cur_thread_index = (cur_thread_index + i) % THREAD_NUM;
-            break;
-        }
-        i++;
-    }
-
-    // save previous thread's rip to struct thread
-    //putsn_serial("next thread index: ", current_index);
-    //putsp_serial("next start rsp: ", threads[current_index]->rsp);
-    //putsp_serial("next start func address: ", (uint64_t *)(threads[current_index]->func_info.func));
-    //puts_serial("\r\n");
-    //puts_serial("dispatch start\r\n");
-    //puts_serial("\r\n");
-    putsn_serial("old_thread_index: ", old_thread_index);
-    putsn_serial("cur_thread_index: ", cur_thread_index);
-    putsp_serial("old thread rsp: ", threads[old_thread_index]->rsp);
-    putsp_serial("cur thread rsp: ", threads[cur_thread_index]->rsp);
-
-    switch_context2(&threads[old_thread_index]->rsp, threads[cur_thread_index]->rsp);
-    //__asm__ volatile("hlt");
-}
-
-void switch_context_first(int tid)
+void switch_context_first(tid_t tid)
 {
     int index = search_index_from_tid(tid);
     //putsp_serial("switch rsp: ", threads[index]->rsp);

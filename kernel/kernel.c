@@ -8,8 +8,8 @@ extern const pix_format_t blue;
 
 extern uint64_t tick;
 extern uint64_t __kheap_start;
-extern struct malloc_header base;
-extern struct malloc_header *kheap;
+//extern malloc_header base;
+//extern malloc_header *kheap;
 
 void init(int argc, char **argv);
 
@@ -26,10 +26,7 @@ void entry_point(bootinfo_t *binfo)
     puts_serial("Serial ok\r\n");
     paint_background(white);
 
-    putsp_serial("frame buffer addr: ", binfo->vinfo.fb);
-    //putsp_serial("heap addr: ", (struct malloc_header *)&__kheap_start);
-
-    init_kheap((struct malloc_header *)&__kheap_start);
+    init_kheap((malloc_header *)&__kheap_start);
     puts_serial("heap setting OK\n");
     printstr(0, 0, black, white, "minOSv2 - A minimal operating system version 2");
 

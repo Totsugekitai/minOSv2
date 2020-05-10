@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+typedef int tid_t;
+
 #define THREAD_NUM      (40)   // Max threads number
 #define STACK_LENGTH    (0x1000)
 
@@ -25,8 +27,8 @@ struct thread {
     uint64_t *rip;
     struct thread_func func_info;
     enum thread_state state;
-    int tid;
-    int ptid;
+    tid_t tid;
+    tid_t ptid;
     int index;
 };
 
@@ -35,7 +37,7 @@ extern uint64_t *init_stack(uint64_t *stack_bottom, uint64_t *rip, struct thread
 extern void switch_context(uint64_t **current_rsp, uint64_t *next_rsp);
 extern void switch_context2(uint64_t **current_rsp, uint64_t *next_rsp);
 
-int search_index_from_tid(int tid);
+int search_index_from_tid(tid_t tid);
 void threads_init(void);
 void thread_stack_init(struct thread *thread);
 void thread_run(struct thread *thread);
@@ -44,6 +46,6 @@ int create_thread(void (*func)(int, char**), int argc, char **argv);
 void schedule_period_init(uint64_t milli_sec);
 void thread_scheduler(void);
 void thread_scheduler2(void);
-void switch_context_first(int tid);
+void switch_context_first(tid_t tid);
 
 #endif

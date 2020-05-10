@@ -1,7 +1,8 @@
 .RECIPEPREFIX = >
 .PHONY: default boot kernel run debug-log all clean
 
-QEMU = /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
+#QEMU = /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
+QEMU = qemu-system-x86_64
 
 default:
 

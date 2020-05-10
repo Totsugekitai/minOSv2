@@ -10,11 +10,11 @@ struct pgtable_info {
     int pgtable_size;
 };
 
-struct malloc_header {
+typedef struct malloc_header {
     struct malloc_header *next;
     uint64_t size; // This param's unit is sizeof(struct malloc_header).
-};
-#define BLK_SIZE (sizeof(struct malloc_header))
+} malloc_header;
+#define BLK_SIZE (sizeof(malloc_header))
 
 #ifndef MINOS_TEST
 void init_gdt(void);
@@ -24,11 +24,10 @@ void init_kpaging(void);
 
 int is_aligned(void *addr, int align);
 void *align_as(void *addr, int align);
-void init_kheap(struct malloc_header *kheap_start);
+void init_kheap(malloc_header *kheap_start);
 void *kmalloc(int size);
 void *kmalloc_alignas(int size, int align_size);
 void kfree(void *ptr);
-//void kfree_aligned(void *ptr, int align_size);
 int count_free_block(void);
 
 #endif
