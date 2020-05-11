@@ -4,7 +4,7 @@ CFLAGS = -g -O0 \
 	  -masm=intel \
 	  -Wall -Wextra -Wno-unused-parameter \
 	  -I /usr/include \
-	  -I /usr/lib/clang/10.0.0/include \
+	  -I /usr/lib/clang/*/include \
 	  -nostdinc -nostdlib \
 	  -fno-builtin -fno-common -fno-stack-protector -fno-pic \
 	  -mno-red-zone
