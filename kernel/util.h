@@ -38,4 +38,12 @@ int enqueue_str(struct queue_char *que, char *s);
 int dequeue_char(struct queue_char *que, char *c);
 int dequeue_str(struct queue_char *que, char *buf);
 
+#define STI_RET0_IF_ERR(x)                      \
+    do {                                        \
+        if (!(x)) {                             \
+            io_sti();                           \
+            return 0;                           \
+        }                                       \
+} while (0)
+
 #endif

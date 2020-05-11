@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "util.h"
 
 // ココらへんの単純な関数はアトでマクロにするかも
@@ -69,8 +70,8 @@ void *memcpy(void *buf1, const void *buf2, unsigned long n)
 extern uint64_t __bss_start, __bss_end;
 void init_bss(void)
 {
-    int size = (int)(&__bss_end - &__bss_start);
-    for (int i = 0; i < size; i++) {
+    uint64_t size = (uint64_t)&__bss_end - (uint64_t)&__bss_start;
+    for (uint64_t i = 0; i < size; i++) {
         (&__bss_start)[i] = 0;
     }
 }

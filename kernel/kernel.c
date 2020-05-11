@@ -43,13 +43,42 @@ void entry_point(bootinfo_t *binfo)
     halt();
 }
 
+sid_t s_global;
+
+void forloop(int argc, char **argv)
+{
+    UNUSED(argc);
+    UNUSED(argv);
+    for (int i = 0; i < 0x200; i++) {
+        putsn_serial("forloop: ", i);
+    }
+    int success = signal(s_global);
+    if (!success) {
+        puts_serial("signal failed\n");
+    }
+}
+
 void jikken(int argc, char **argv)
 {
     UNUSED(argc);
     UNUSED(argv);
 
+    s_global = create_sem(0);
+    if (s_global < 0) {
+        puts_serial("create_sem failed\n");
+        return;
+    } else {
+        putsn_serial("s_global: ", s_global);
+    }
+    int success = wait(s_global);
+    if (!success) {
+        puts_serial("wait failed\n");
+        return;
+    }
+
     create_thread(task_shikaku_ao, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
+    create_thread(check_ext2, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
     create_thread(task_shikaku_ao, 0, 0);
@@ -59,12 +88,13 @@ void init(int argc, char **argv)
 {
     UNUSED(argc);
     UNUSED(argv);
-    create_thread(task_shikaku_aka, 0, 0);
-    create_thread(check_ext2, 0, 0);
-    create_thread(task_shikaku_ao, 0, 0);
-    create_thread(task_shikaku_aka, 0, 0);
+    //create_thread(task_shikaku_aka, 0, 0);
+    //create_thread(check_ext2, 0, 0);
+    //create_thread(task_shikaku_ao, 0, 0);
+    //create_thread(task_shikaku_aka, 0, 0);
     create_thread(check_ext2, 0, 0);
     create_thread(jikken, 0, 0);
-    create_thread(task_shikaku_ao, 0, 0);
+    create_thread(forloop, 0, 0);
+    //create_thread(task_shikaku_ao, 0, 0);
     halt();
 }

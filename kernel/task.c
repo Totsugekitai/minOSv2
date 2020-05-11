@@ -6,24 +6,25 @@
 
 extern uint64_t tick;
 
-struct thread *threads[THREAD_NUM];
+thread *threads[THREAD_NUM];
 int cur_thread_index = 0;
 tid_t tid_global = 0;
 
 // for tid -> index conversion
 static tid_t tid_index_dict[THREAD_NUM] = {-1};
 
-static struct thread empty_thread = {
-                                     .stack = 0,
-                                     .rsp = 0,
-                                     .rip = 0,
-                                     .func_info.func = 0,
-                                     .func_info.argc = 0,
-                                     .func_info.argv = 0,
-                                     .state = DEAD,
-                                     .tid = -1,
-                                     .ptid = -1,
-                                     .index = -1,
+static thread empty_thread = {
+                              .stack = 0,
+                              .rsp = 0,
+                              .rip = 0,
+                              .func_info.func = 0,
+                              .func_info.argc = 0,
+                              .func_info.argv = 0,
+                              .state = DEAD,
+                              .tid = -1,
+                              .ptid = -1,
+                              .index = -1,
+                              .sem = -1,
 };
 
 /** 周期割り込みの設定
@@ -56,6 +57,22 @@ int search_index_from_tid(tid_t tid)
     return ret;
 }
 
+thread *get_thread_ptr(tid_t tid)
+{
+    int t_index = search_index_from_tid(tid);
+    return threads[t_index];
+}
+
+int change_state(tid_t tid, thread_state state)
+{
+    thread *t = get_thread_ptr(tid);
+    if (!t) {
+        return 0;
+    }
+    t->state = state;
+    return 1;
+}
+
 /** threadsの初期化処理
  * DEADのスレッドを作ってそれで埋めておく
  */
@@ -66,7 +83,7 @@ void threads_init(void)
     }
 }
 
-void thread_stack_init(struct thread *thread)
+void thread_stack_init(thread *thread)
 {
     putsp_serial("thread address: ", thread);
     thread->rsp = init_stack(thread->rsp, thread->rip, thread);
@@ -81,20 +98,20 @@ void thread_stack_init(struct thread *thread)
  * スタックに積まれた初期レジスタをpopし、
  * スタックの底に積んであるメイン関数のアドレスをもとにret命令でメイン関数に移行
  */
-void thread_run(struct thread *thread)
+void thread_run(thread *thread)
 {
     // threadsにthreadの登録をする
     int i;
     for (i = 0; i < THREAD_NUM; i++) {
         // threadsのi番目が開いていたら...
         if (threads[i]->state == DEAD) {
+            io_cli();
             threads[i] = thread;            // スレッドをi番目に入れて
             threads[i]->state = RUNNABLE;   // stateはRUNNABLE
             threads[i]->index = i;          // indexを登録
             threads[i]->ptid = get_cur_thread_tid();
             threads[i]->tid = tid_global;
             tid_index_dict[i] = threads[i]->tid;
-            io_cli();
             tid_global++;
             io_sti();
             putsn_serial("thread run! tid: ", threads[i]->tid);
@@ -114,7 +131,7 @@ static void thread_end(int thread_index)
     puts_serial("THREAD END!!\r\n");
 }
 
-static void thread_exec(struct thread *thread)
+static void thread_exec(thread *thread)
 {
     //putsp_serial("thread func info into thread_exec: ", thread->func_info.func);
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
@@ -127,9 +144,9 @@ static void thread_exec(struct thread *thread)
 /** スレッドの生成
  * thread構造体の初期化とスタックの初期化を行う
  */
-struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
+thread thread_gen(void (*func)(int, char**), int argc, char **argv)
 {
-    struct thread thread;
+    thread thread;
 
     uint64_t *stack = kmalloc_alignas(STACK_LENGTH, 16);
     thread.stack = stack;
@@ -138,6 +155,7 @@ struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
     thread.func_info.func = func;
     thread.func_info.argc = argc;
     thread.func_info.argv = argv;
+    thread.sem = -1;
 
     thread_stack_init(&thread);
     //putsn_serial("thread stack bottom: ", (uint64_t)thread.stack + STACK_LENGTH);
@@ -146,7 +164,7 @@ struct thread thread_gen(void (*func)(int, char**), int argc, char **argv)
     return thread;
 }
 
-void thread_gen2(struct thread *thread, void (*func)(int, char**), int argc, char **argv)
+static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, char **argv)
 {
     uint64_t *stack = kmalloc_alignas(STACK_LENGTH, 16);
     thread->stack = stack;
@@ -162,8 +180,8 @@ void thread_gen2(struct thread *thread, void (*func)(int, char**), int argc, cha
 int create_thread(void (*func)(int, char**), int argc, char **argv)
 {
     io_cli();
-    void *mem = kmalloc_alignas(sizeof(struct thread), 16);
-    struct thread *t = mem;
+    void *mem = kmalloc_alignas(sizeof(thread), 16);
+    thread *t = mem;
     thread_gen2(t, func, argc, argv);
     thread_run(t);
     io_sti();

@@ -7,7 +7,9 @@ CFLAGS = -g -O0 \
 	  -I /usr/lib/clang/*/include \
 	  -nostdinc -nostdlib \
 	  -fno-builtin -fno-common -fno-stack-protector -fno-pic \
-	  -mno-red-zone
+	  -mno-red-zone \
+	  #-fsanitize=undefined
+
 LDFLAGS = -s -x -T kernel.lds -Map kernel.map -e entry_point
 
 OBJS = kernel.o \
@@ -16,6 +18,7 @@ OBJS = kernel.o \
 	  mm.o mm_asm.o \
 	  task.o task_asm.o \
 	  interrupt.o interrupt_asm.o int_handler.o \
+	  semaphore.o \
 	  device/serial.o \
 	  device/pci.o \
 	  device/ahci.o \
