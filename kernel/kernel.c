@@ -100,10 +100,10 @@ void init(int argc, char **argv)
     UNUSED(argv);
     tid_t tid = fork_thread();
     puts_serial("fork thread end\n");
-    if (tid > 0) {
-        do_parent();
-    } else {
+    if (tid == -1) {
         do_child();
+    } else {
+        do_parent();
     }
     //create_thread(task_shikaku_aka, 0, 0);
     //create_thread(check_ext2, 0, 0);

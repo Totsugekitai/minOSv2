@@ -74,13 +74,19 @@ switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp
 
 .global     switch_fork
 .align      16
-switch_fork:    # void switch_fork(uint64_t **cur_rsp, uint64_t *new_stack_top);
+switch_fork:    # void switch_fork(uint64_t **cur_rsp, uint64_t *new_stack_btm, uint64_t *cur_stack_btm);
 # push current task's general registers to stack
     cli
-    #hlt
-    pop     rdx // pop instruction pointer
-    mov     [rsi-0],rdx // push to new_stack
-    push    rdx // push instruction pointer
+        #hlt
+    pop     rcx // pop instruction pointer
+        sub     rdx,rsp  // current thread stack bottom - current thread stack top(rsp) (diff)
+        #sub     r8,rdx
+        #hlt
+        sub     rsi,rdx
+        sub     rsi,8
+        #hlt
+    mov     [rsi],rcx // push instruction pointer to new_stack
+    push    rcx // push instruction pointer
     mov     [rsi-8],rbp // push rbp to new_stack
     push    rbp
     mov     [rsi-16],r15 // push r15 to newstack
@@ -113,7 +119,7 @@ switch_fork:    # void switch_fork(uint64_t **cur_rsp, uint64_t *new_stack_top);
     push    rax
 # switch rsp
     mov     [rdi],rsp
-    sub     rsi,128
+    sub     rsi,120
     mov     rsp,rsi
     #hlt
 # pop next task's general registers from stack

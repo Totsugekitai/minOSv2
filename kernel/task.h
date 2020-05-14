@@ -25,6 +25,7 @@ typedef enum thread_state {
 
 typedef struct thread {
     uint64_t *stack;
+    uint64_t *stack_btm;
     uint64_t *rsp;
     uint64_t *rip;
     thread_func func_info;
@@ -40,7 +41,7 @@ typedef struct thread {
 extern uint64_t *init_stack(uint64_t *stack_bottom, uint64_t *rip, thread *thread);
 extern void switch_context(uint64_t **current_rsp, uint64_t *next_rsp);
 extern void switch_context2(uint64_t **current_rsp, uint64_t *next_rsp);
-extern void switch_fork(uint64_t **cur_rsp, uint64_t *newstack);
+extern void switch_fork(uint64_t **cur_rsp, uint64_t *newstack, uint64_t *cur_stack_btm);
 
 tid_t get_cur_thread_tid(void);
 int search_index_from_tid(tid_t tid);
