@@ -7,13 +7,14 @@ typedef int tid_t;
 #include "semaphore.h"
 
 #define THREAD_NUM      (40)   // Max threads number
+#define NTHREAD_CHILD   (10)
 #define STACK_LENGTH    (0x1000)
 
-struct thread_func {
+typedef struct thread_func {
     void (*func)(int, char**);
     int argc;
     char **argv;
-};
+} thread_func;
 
 typedef enum thread_state {
     RUNNABLE,
@@ -26,10 +27,11 @@ typedef struct thread {
     uint64_t *stack;
     uint64_t *rsp;
     uint64_t *rip;
-    struct thread_func func_info;
-    enum thread_state state;
+    thread_func func_info;
+    thread_state state;
     tid_t tid;
     tid_t ptid;
+    tid_t ctid[NTHREAD_CHILD];
     int index;
     sid_t sem;
 } thread;
@@ -38,6 +40,7 @@ typedef struct thread {
 extern uint64_t *init_stack(uint64_t *stack_bottom, uint64_t *rip, thread *thread);
 extern void switch_context(uint64_t **current_rsp, uint64_t *next_rsp);
 extern void switch_context2(uint64_t **current_rsp, uint64_t *next_rsp);
+extern void switch_fork(uint64_t **cur_rsp, uint64_t *newstack);
 
 tid_t get_cur_thread_tid(void);
 int search_index_from_tid(tid_t tid);
@@ -51,5 +54,6 @@ int create_thread(void (*func)(int, char**), int argc, char **argv);
 void schedule_period_init(uint64_t milli_sec);
 void thread_scheduler(void);
 void switch_context_first(tid_t tid);
+tid_t fork_thread(void);
 
 #endif

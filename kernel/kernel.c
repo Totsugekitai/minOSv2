@@ -84,17 +84,34 @@ void jikken(int argc, char **argv)
     create_thread(task_shikaku_ao, 0, 0);
 }
 
+void do_child(void)
+{
+    create_thread(task_shikaku_ao, 0, 0);
+}
+
+void do_parent(void)
+{
+    create_thread(task_shikaku_aka, 0, 0);
+}
+
 void init(int argc, char **argv)
 {
     UNUSED(argc);
     UNUSED(argv);
+    tid_t tid = fork_thread();
+    puts_serial("fork thread end\n");
+    if (tid > 0) {
+        do_parent();
+    } else {
+        do_child();
+    }
     //create_thread(task_shikaku_aka, 0, 0);
     //create_thread(check_ext2, 0, 0);
     //create_thread(task_shikaku_ao, 0, 0);
     //create_thread(task_shikaku_aka, 0, 0);
-    create_thread(check_ext2, 0, 0);
-    create_thread(jikken, 0, 0);
-    create_thread(forloop, 0, 0);
+    //create_thread(check_ext2, 0, 0);
+    //create_thread(jikken, 0, 0);
+    //create_thread(forloop, 0, 0);
     //create_thread(task_shikaku_ao, 0, 0);
     halt();
 }
