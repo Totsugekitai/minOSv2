@@ -8,8 +8,6 @@ extern const pix_format_t blue;
 
 extern uint64_t tick;
 extern uint64_t __kheap_start;
-//extern malloc_header base;
-//extern malloc_header *kheap;
 
 void init(int argc, char **argv);
 
@@ -86,18 +84,43 @@ void jikken(int argc, char **argv)
 
 void do_child(void)
 {
-    create_thread(task_shikaku_ao, 0, 0);
+    puts_serial("func do_child()\n");
+    thread *t = get_thread_ptr(get_cur_thread_tid());
+    pwrite("deadbeeeeeeeeeeeeeeeeeeeeeeeeef", 32);
+    int success = signalp(*t->sid_ptr);
+    if (!success) {
+        puts_serial("signal failed\n");
+    } else {
+        puts_serial("signal success\n");
+    }
 }
 
 void do_parent(void)
 {
-    create_thread(task_shikaku_aka, 0, 0);
+    puts_serial("func do_parent()\n");
+    thread *t = get_thread_ptr(get_cur_thread_tid());
+    int success = waitp(*t->sid_ptr);
+    if (!success) {
+        puts_serial("wait failed\n");
+    } else {
+        char buf[32];
+        pread(buf, 32);
+        puts_serial(buf);
+        puts_serial("receive OK\n");
+    }
 }
 
 void init(int argc, char **argv)
 {
     UNUSED(argc);
     UNUSED(argv);
+
+    thread *curt = get_thread_ptr(get_cur_thread_tid());
+    int success = gen_pipe(curt);
+    if (!success) {
+        puts_serial("gen_pipe failed\n");
+        halt();
+    }
     tid_t tid = fork_thread();
     puts_serial("fork thread end\n");
     if (tid == -1) {

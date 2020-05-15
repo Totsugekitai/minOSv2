@@ -5,6 +5,7 @@ typedef int tid_t;
 
 #include <stdint.h>
 #include "semaphore.h"
+#include "stdcall/pipe.h"
 
 #define THREAD_NUM      (40)   // Max threads number
 #define NTHREAD_CHILD   (10)
@@ -34,7 +35,8 @@ typedef struct thread {
     tid_t ptid;
     tid_t ctid[NTHREAD_CHILD];
     int index;
-    sid_t sem;
+    sid_t *sid_ptr;
+    pipe_struct *pstruct;
 } thread;
 
 // defined at task_asm.S

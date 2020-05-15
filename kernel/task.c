@@ -3,6 +3,8 @@
 #include "mm.h"
 #include "device/serial.h"
 #include "util.h"
+#include "semaphore.h"
+#include "stdcall/pipe.h"
 
 extern uint64_t tick;
 
@@ -25,7 +27,8 @@ static thread empty_thread = {
                               .tid = -1,
                               .ptid = -1,
                               .index = -1,
-                              .sem = -1,
+                              .sid_ptr = 0,
+                              .pstruct = 0,
 };
 
 /** 周期割り込みの設定
@@ -188,13 +191,21 @@ static int thread_register(thread *thread)
 /* スレッドの終了p
  * stateをDEADにし、スケジューラに切り替える
  */
-static void thread_end(int thread_index)
+static void thread_end(thread *t)
 {
-    threads[thread_index] = &empty_thread;
-    tid_t tid = get_cur_thread_tid();
-    thread *parent_t = get_thread_ptr(tid);
+    threads[t->index] = &empty_thread;
+    tid_t tid = t->tid;
+    thread *parent_t = get_thread_ptr(t->ptid);
     clear_ctid(parent_t, tid);
-    tid_index_dict[thread_index] = -1;
+    tid_index_dict[t->index] = -1;
+    if (get_semcount(*t->sid_ptr) == 0) {
+        delete_sem(*t->sid_ptr);
+        kfree(t->pstruct->pipe_ptr);
+        kfree(t->pstruct);
+    }
+    kfree(t->sid_ptr);
+    kfree(t);
+
     puts_serial("THREAD END!!\r\n");
 }
 
@@ -203,25 +214,25 @@ static void thread_exec(thread *thread)
     //putsp_serial("thread func info into thread_exec: ", thread->func_info.func);
     thread->func_info.func(thread->func_info.argc, thread->func_info.argv);
     kfree(thread->stack);
-    thread_end(thread->index);
-    kfree(thread);
+    thread_end(thread);
     thread_scheduler();
 }
 
 /** スレッドの生成
  * thread構造体の初期化とスタックの初期化を行う
  */
-static void thread_gen_for_fork(thread *t, thread_func func_info, uint64_t *stack)
+static void thread_gen_for_fork(thread *newt, thread *curt, uint64_t *stack)
 {
-    t->stack = stack;
-    t->stack_btm = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
-    t->rsp = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
-    t->rip = (uint64_t *)thread_exec;
-    t->func_info.func = func_info.func;
-    t->func_info.argc = func_info.argc;
-    t->func_info.argv = func_info.argv;
-    t->sem = -1;
-    memset(t->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
+    newt->stack = stack;
+    newt->stack_btm = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
+    newt->rsp = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
+    newt->rip = (uint64_t *)thread_exec;
+    newt->func_info.func = curt->func_info.func;
+    newt->func_info.argc = curt->func_info.argc;
+    newt->func_info.argv = curt->func_info.argv;
+    newt->sid_ptr = curt->sid_ptr;
+    newt->pstruct = curt->pstruct;
+    memset(newt->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
 }
 
 static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, char **argv)
@@ -233,6 +244,9 @@ static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, cha
     thread->func_info.func = func;
     thread->func_info.argc = argc;
     thread->func_info.argv = argv;
+    thread->sid_ptr = kmalloc(sizeof(sid_t));
+    thread->pstruct = kmalloc(sizeof(pipe_struct));
+    thread->pstruct->pstate = EMPTY;
     memset(thread->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
 
     thread_stack_init(thread);
@@ -304,6 +318,8 @@ void put_thread_info(thread *t)
     putsp_serial("stack_btm: ", t->stack_btm);
     putsp_serial("rsp:       ", t->rsp);
     putsp_serial("rip:       ", t->rip);
+    putsp_serial("pipe_ptr:  ", t->pstruct->pipe_ptr);
+    putsp_serial("sid_ptr:   ", t->sid_ptr);
     putsn_serial("tid:       ", t->tid);
     putsn_serial("ptid:      ", t->ptid);
     puts_serial("ctid:\n");
@@ -325,7 +341,7 @@ tid_t fork_thread(void)
     thread *new_thread = kmalloc_alignas(sizeof(thread), 16);
     thread *cur_thread = get_thread_ptr(get_cur_thread_tid());
     put_thread_info(cur_thread);
-    thread_gen_for_fork(new_thread, cur_thread->func_info, newstack);
+    thread_gen_for_fork(new_thread, cur_thread, newstack);
     int t_index = thread_register(new_thread);
     set_ctid(cur_thread, new_thread->tid);
 
@@ -337,12 +353,11 @@ tid_t fork_thread(void)
 
     for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
         new_thread->stack[i] = cur_thread->stack[i];
-        putsn_serial("cur_thread->stack[i]: ", cur_thread->stack[i]);
     }
 
-    puts_serial("switch_fork() enter\n");
+    //puts_serial("switch_fork() enter\n");
     switch_fork(&cur_thread->rsp, new_thread->stack_btm, cur_thread->stack_btm);
-    puts_serial("switch_fork() end\n");
+    //puts_serial("switch_fork() end\n");
     io_sti();
 
     io_cli();

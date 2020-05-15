@@ -23,7 +23,8 @@ OBJS = kernel.o \
 	  device/pci.o \
 	  device/ahci.o \
 	  fs/ext2.o \
-	  app/app.o #app/console.o \
+	  app/app.o \
+	  stdcall/pipe.o \
 
 .PHONY: clean
 
@@ -44,3 +45,4 @@ clean:
 > @rm -f device/*.o
 > @rm -f fs/*.o
 > @rm -f app/*.o
+> @rm -f stdcall/*.o

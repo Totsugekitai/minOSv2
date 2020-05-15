@@ -44,6 +44,11 @@ int dequeue_sem(tid_t *tid, sid_t sem)
     }
 }
 
+int get_semcount(sid_t sem)
+{
+    return semtable[sem].semcount;
+}
+
 sid_t newsem(void)
 {
     for (int i = 0; i < NSEM; i++) {
@@ -88,9 +93,9 @@ int wait(sid_t sem)
         tid_t tid = get_cur_thread_tid();
         STI_RET0_IF_ERR(change_state(tid, WAIT));
         thread *t = get_thread_ptr(tid);
-        t->sem = sem;
+        *t->sid_ptr = sem;
         STI_RET0_IF_ERR(enqueue_sem(tid, sem));
-
+        putsn_serial("enqueue tid: ", tid);
         thread_scheduler();
     }
 
@@ -108,6 +113,7 @@ int signal(sid_t sem)
         semtable[sem].semcount++;
         tid_t tid;
         STI_RET0_IF_ERR(dequeue_sem(&tid, sem));
+        putsn_serial("dequeue tid: ", tid);
         STI_RET0_IF_ERR(change_state(tid, RUNNABLE));
         thread_scheduler();
     }

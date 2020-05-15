@@ -27,6 +27,7 @@ typedef struct semtable_entry {
 
 #define isbadsem(s) ((s) < 0 || (s) >= NSEM)
 
+int get_semcount(sid_t sem);
 sid_t create_sem(int init_count);
 int wait(sid_t sem);
 int signal(sid_t sem);
