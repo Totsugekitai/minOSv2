@@ -7,4 +7,6 @@ SECTIONS
     __bss_start = .;
     .bss    : { *(.bss) }
     __bss_end = .;
+    . = ALIGN(16);
+    __kheap_start = .;
 }

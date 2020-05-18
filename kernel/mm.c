@@ -1,6 +1,11 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "util.h"
 #include "mm.h"
+
+#ifndef MINOS_TEST
+#include "device/serial.h"
+#endif
 
 /* Segmentation */
 uint64_t *gdt = (uint64_t *)0x80;
@@ -8,6 +13,7 @@ uint64_t *gdt = (uint64_t *)0x80;
 extern void load_gdt(uint64_t *base, int limit);
 extern void intersegment_jump(uint16_t cs);
 
+#ifndef MINOS_TEST
 static uint64_t make_segm_desc(uint64_t type, uint64_t dpl)
 {
     // base and limit is 0
@@ -33,6 +39,7 @@ void init_gdt(void)
     load_gdt(gdt, GDT_LIMIT);
     intersegment_jump(1 << 3);
 }
+#endif
 
 /* Paging functions */
 #define ENTRY_NUM   (512)
@@ -46,7 +53,7 @@ void create_kpgtable(uint64_t *start_addr)
     int pml4_num = 1;
     int pgtable_size = TABLE_SIZE * (pt_num + pd_num + pdpt_num + pml4_num);
     // Initialize
-    mymemset((void *)start_addr, 0, pgtable_size);
+    memset((void *)start_addr, 0, pgtable_size);
 
     // create page table
     uint64_t *pml4 = start_addr;
@@ -72,6 +79,7 @@ void create_kpgtable(uint64_t *start_addr)
     }
 }
 
+#ifndef MINOS_TEST
 /* Initialization of kernel page table.
  * Kernel page size is 4KB.
 */
@@ -81,39 +89,57 @@ void init_kpaging(void)
     create_kpgtable(start_addr);
     load_pgtable(start_addr);
 }
+#endif
 
-#define BLK_SIZE (sizeof(struct malloc_header))
-struct malloc_header base = { 0, 0 };
-#define HEAP_SIZE (0x400000)
-struct malloc_header kheap[HEAP_SIZE]; // heap area
-struct malloc_header *freep = 0;
-
-void init_kheap(void)
+int is_aligned(void *addr, int align)
 {
+    uint64_t addr_num = (uint64_t)addr;
+    if (addr_num % align == 0 && addr_num != 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void *align_as(void *addr, int align)
+{
+    uint64_t addr_num = (uint64_t)addr;
+    return (void *)(addr_num + (align - (addr_num % align)));
+}
+
+malloc_header base = { 0, 0 };
+malloc_header *kheap;
+malloc_header *freep = &base;
+
+void init_kheap(malloc_header *kheap_start)
+{
+    kheap = kheap_start;
+    // zero clear
+    //memset(kheap, 0, HEAP_SIZE);
+
     kheap[0].next = &base;
-    kheap[0].size = HEAP_SIZE;
-    base.next = &kheap[0];
+    kheap[0].size = HEAP_SIZE / sizeof(malloc_header);
+    base.next = kheap;
     base.size = 0;
+}
+
+int round_up_block(int byte, int block)
+{
+    return (byte + block - 1) / block;
 }
 
 void *kmalloc(int size)
 {
-    uint64_t nunits = ((size + sizeof(struct malloc_header) - 1) / sizeof(struct malloc_header)) + 1;
+    //uint64_t nunits = ((size + sizeof(malloc_header) - 1) / sizeof(malloc_header)) + 1;
+    uint64_t nunits = round_up_block(size, sizeof(malloc_header)) + 1;
 
     // search free point
-    struct malloc_header *p, *q;
-    if ((q = freep) == 0) {
-        freep = q = &base;
-        base.size = 0;
-        base.next = kheap;
-        base.next->size = HEAP_SIZE / sizeof(struct malloc_header);
-        base.next->next = &base;
-    }
+    malloc_header *p, *q = freep;
     for (p = q->next;; q = p, p = p->next) {
-        if (p->size >= nunits) {
-            if (p->size == nunits) {
+        if (p->size >= nunits) { // 空きブロックが見つかった
+            if (p->size == nunits) { // サイズがピッタリ
                 q->next = p->next;
-            } else {
+            } else {                 // サイズがデカい
                 p->size -= nunits;
                 p += p->size;
                 p->size = nunits;
@@ -128,16 +154,71 @@ void *kmalloc(int size)
     return 0;
 }
 
+malloc_header *get_aligned_address(malloc_header *start, int block_length, int align_size)
+{
+    malloc_header *i;
+    for (i = start + block_length - 1; i > start; i--) {
+        if ((uint64_t)i % align_size == 0) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+void *kmalloc_alignas(int size, int align_size)
+{
+    if (align_size <= 16) {
+        return kmalloc(size);
+    }
+
+    //uint64_t nunits = ((size + sizeof(malloc_header) - 1) / sizeof(malloc_header)) + 1;
+    uint64_t nunits = round_up_block(size, sizeof(malloc_header)) + 1;
+
+    // search free point
+    malloc_header *p, *q = freep;
+
+    for (p = q->next;; q = p, p = p->next) {
+        malloc_header *aligned_addr = get_aligned_address(p, p->size, align_size);
+        // 空きブロック中にアライメントされたアドレスがあるかどうか
+        if (aligned_addr) {
+            if (aligned_addr - 1 + nunits <= p + p->size) { // 十分な大きさか
+                if (aligned_addr - 1 + nunits == p + p->size) {//後ろがピッタリ
+                    p->size -= nunits;
+                    aligned_addr[-1].size = nunits;
+                } else {                                                                      // 後ろがデカい
+                    ptrdiff_t fdiff_block = &aligned_addr[-1] - p;
+                    ptrdiff_t bdiff_block = (p + p->size) - (&aligned_addr[-1] - nunits);
+                    p->size = fdiff_block;
+                    aligned_addr[-1].size = nunits;
+                    malloc_header *next_p = p + fdiff_block + nunits;
+                    next_p->size = bdiff_block;
+                    next_p->next = p->next;
+                    p->next = next_p;
+                }
+                freep = q;
+                return aligned_addr;
+            }
+        }
+        if (p == freep) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
 void kfree(void *ptr)
 {
-    struct malloc_header *q;
-    struct malloc_header *p = (struct malloc_header *)ptr - 1;
+    malloc_header *q; // free するブロックの直前の空きブロック
+    malloc_header *p = (malloc_header *)ptr - 1; // free するブロック
+
+    // q を探す
     for (q = freep; !(p > q && p < q->next); q = q->next) {
         if (q >= q->next && (p > q || p < q->next)) {
             break;
         }
     }
 
+    // free するブロックの後ろが空いている場合
     if (p + p->size == q->next) {
         p->size += q->next->size;
         p->next = q->next->next;
@@ -145,6 +226,7 @@ void kfree(void *ptr)
         p->next = q->next;
     }
 
+    // free するブロックの前が空いている場合
     if (q + q->size == p) {
         q->size += p->size;
         q->next = p->next;
@@ -153,4 +235,14 @@ void kfree(void *ptr)
     }
 
     freep = q;
+}
+
+int count_free_block(void)
+{
+    int count = 0;
+    malloc_header *p = &base;
+    for (;p->next != &base; p = p->next) {
+        count++;
+    }
+    return count;
 }

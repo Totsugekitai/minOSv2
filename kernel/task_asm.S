@@ -33,6 +33,7 @@ init_stack:           # uint64_t *init_stack(uint64_t stack_bottom, uint64_t rip
 .align      16
 switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp);
 # push current task's general registers to stack
+    cli
     push    rbp
     push    r15
     push    r14
@@ -68,5 +69,77 @@ switch_context:   # void switch_context(uint64_t *current_rsp, uint64_t next_rsp
     pop     r15
     pop     rbp
 # return to next task
+    sti
+    ret
+
+.global     switch_fork
+.align      16
+switch_fork:    # void switch_fork(uint64_t **cur_rsp, uint64_t *new_stack_btm, uint64_t *cur_stack_btm);
+# push current task's general registers to stack
+    cli
+        #hlt
+    pop     rcx // pop instruction pointer
+        sub     rdx,rsp  // current thread stack bottom - current thread stack top(rsp) (diff)
+        #sub     r8,rdx
+        #hlt
+        sub     rsi,rdx
+        sub     rsi,8
+        #hlt
+    mov     [rsi],rcx // push instruction pointer to new_stack
+    push    rcx // push instruction pointer
+    mov     [rsi-8],rbp // push rbp to new_stack
+    push    rbp
+    mov     [rsi-16],r15 // push r15 to newstack
+    push    r15
+    mov     [rsi-24],r14
+    push    r14
+    mov     [rsi-32],r13
+    push    r13
+    mov     [rsi-40],r12
+    push    r12
+    mov     [rsi-48],r11
+    push    r11
+    mov     [rsi-56],r10
+    push    r10
+    mov     [rsi-64],r9
+    push    r9
+    mov     [rsi-72],r8
+    push    r8
+    mov     [rsi-80],rdi
+    push    rdi
+    mov     [rsi-88],rsi
+    push    rsi
+    mov     [rsi-96],rdx
+    push    rdx
+    mov     [rsi-104],rcx
+    push    rcx
+    mov     [rsi-112],rbx
+    push    rbx
+    mov     [rsi-120],rax
+    push    rax
+# switch rsp
+    mov     [rdi],rsp
+    sub     rsi,120
+    mov     rsp,rsi
+    #hlt
+# pop next task's general registers from stack
+    pop     rax
+    pop     rbx
+    pop     rcx
+    pop     rdx
+    pop     rsi
+    pop     rdi
+    pop     r8
+    pop     r9
+    pop     r10
+    pop     r11
+    pop     r12
+    pop     r13
+    pop     r14
+    pop     r15
+    pop     rbp
+# return to next task
+    #hlt
+    sti
     ret
 

@@ -15,5 +15,7 @@
 
 #include "app/app.h"
 
+#include "stdcall/pipe_include.h"
+
 #endif
 
