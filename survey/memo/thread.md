@@ -41,5 +41,47 @@ sleep中のタスクには残りタイムスライス/2をボーナスとして�
     - タイマ割り込み関数内で周期を数える
 - スケジューラ呼び出し
     - 周期タイマで一定の周期を数え、周期が来たら周期タイマ内でスケジューラを呼び出す
-- thread_run()内のメイン関数呼び出しについて
-    - #PFで落ちる。原因 is 何？
+
+## `fork_thread()` の実装
+
+まず `struct thread` に、子スレッドのtidである `cpid` を追加する。
+
+``` c
++ #define NTHREAD_CHILD 40
+
+struct thread_func {
+    void (*func)(int, char**);
+    int argc;
+    char **argv;
+};
+
+typedef enum thread_state {
+    RUNNABLE,
+    WAIT,
+    SLEEP,
+    DEAD,
+} thread_state;
+
+typedef struct thread {
+    uint64_t *stack;
+    uint64_t *rsp;
+    uint64_t *rip;
+    struct thread_func func_info;
+    enum thread_state state;
+    tid_t tid;
+    tid_t ptid;
++   tid_t ctid[NTHREAD_CHILD];
+    int index;
+    sid_t sem;
+} thread;
+```
+
+これをコピーしたい。
+
+次の動作をする `fork_thread()` を実装する。
+
+1. まずスタックのコピー
+2. 次は `struct thread` のコピーと `rsp,stack` の値の調整
+3. threadを `threads` 配列に格納して `index` の調整
+4. `tid,ptid,ctid` の調整
+

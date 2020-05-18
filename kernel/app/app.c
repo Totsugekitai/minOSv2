@@ -14,6 +14,7 @@ void task_shikaku_aka(int argc, char **argv)
     UNUSED(argc);
     UNUSED(argv);
     uint32_t x = 0;
+
     while (1) {
         printstr((x-8)%400 + 200, 80, white, white, " ");
         printstr(x%400 + 200, 80, red, red, " ");

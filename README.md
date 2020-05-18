@@ -1,5 +1,8 @@
 # minOSv2
 
+![build](https://github.com/Totsugekitai/minOSv2/workflows/build/badge.svg)
+![test](https://github.com/Totsugekitai/minOSv2/workflows/test/badge.svg)
+
 x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 [minOS](https://github.com/Totsugekitai/minOS) を書き直して作られています。
@@ -63,3 +66,28 @@ TOOL_CHAIN_TAG        = GCC5
 ## 掃除
 
 `minOSv2` のルートディレクトリで `make clean` です。
+
+## テスト
+
+minOSv2は一部の処理について単体テストができます。
+
+テストには [GoogleTest](https://github.com/google/googletest) を用いています。
+
+### テスト環境の構築
+
+`minOSv2` のルートディレクトリで、 `git submodule update --init` を打ちます。
+すると `tests` ディレクトリに `googletest` がクローンされます。
+
+配置したら、次のコマンドを入力します。
+
+``` shell
+$ cd path/to/minOSv2/tests
+$ make gtest-gen
+```
+
+これで `tests` ディレクトリ内に `gtest` ディレクトリが生成されます。
+これはテストに用いられます。
+
+### テスト方法
+
+`minOSv2` のルートディレクトリで `make test` です。

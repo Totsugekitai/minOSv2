@@ -1,0 +1,17 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - feature-*
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: make test
+      run: |
+        docker build -f Dockerfile-test -t minosv2_test .

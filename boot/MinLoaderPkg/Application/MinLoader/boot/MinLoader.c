@@ -117,6 +117,9 @@ UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         status = gBS->ExitBootServices(ImageHandle, mapkey);
     } while (EFI_ERROR(status));
 
+    for (uint64_t i = 0; i < binfo.vinfo.fb_size; i++) {
+        binfo.vinfo.fb[i] = 0xffffffff;
+    }
     // カーネルに渡す情報をレジスタに格納
     // スタックポインタを設定しカーネルへジャンプ
     //jump_to_kernel(&binfo, start_addr);

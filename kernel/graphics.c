@@ -72,7 +72,7 @@ void paint_background(pix_format_t bgcolor)
     }
 }
 
-static inline void printchar(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bcolor, char c)
+void printchar(uint32_t ul_x, uint32_t ul_y, pix_format_t color, pix_format_t bcolor, char c)
 {
     char d, c_num = c - 0x20;
     int i, j;

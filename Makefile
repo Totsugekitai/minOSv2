@@ -1,7 +1,8 @@
 .RECIPEPREFIX = >
 .PHONY: default boot kernel run debug-log all clean
 
-QEMU = /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
+#QEMU = /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
+QEMU = qemu-system-x86_64
 
 default:
 
@@ -12,6 +13,9 @@ boot:
 kernel:
 > make -C kernel/
 > cp kernel/kernel.elf ./fs
+
+test:
+> make -C tests/
 
 run:
 > $(QEMU) \
@@ -48,3 +52,4 @@ all:
 clean:
 > make -C boot/ clean
 > make -C kernel/ clean
+> make -C tests/ clean
