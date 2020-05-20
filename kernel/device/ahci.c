@@ -4,29 +4,6 @@
 #include "serial.h"
 #include "ahci.h"
 
-#define SATA_SIG_ATA 0x00000101   // SATA drive
-#define SATA_SIG_ATAPI 0xEB140101 // SATAPI drive
-#define SATA_SIG_SEMB 0xC33C0101  // Enclosure management bridge
-#define SATA_SIG_PM 0x96690101    // Port multiplier
-
-#define AHCI_DEV_NULL 0
-#define AHCI_DEV_SATA 1
-#define AHCI_DEV_SEMB 2
-#define AHCI_DEV_PM 3
-#define AHCI_DEV_SATAPI 4
-
-#define HBA_PORT_IPM_ACTIVE 1
-#define HBA_PORT_DET_PRESENT 3
-
-#define ATA_DEV_BUSY 0x80
-#define ATA_DEV_DRQ 0x08
-
-#define CMD_LIST_SIZE 0x8000    // size: 0x20 * 32 * 32 = 0x8000
-#define RCVD_FIS_SIZE 0x2000    // size: 0x100 * 32     = 0x2000
-#define PRDT_ENTRY_MAX 65536
-#define PRDT_ENTRY_SIZE (4 * 4)
-#define CMD_TBL_SIZE  (0x80 + PRDT_ENTRY_SIZE * PRDT_ENTRY_MAX)
-
 void *cmd_tbl_base;
 
 // AHCI Address Base
@@ -386,9 +363,9 @@ static inline void wait_pxci_clear(HBA_PORT *port)
     //puts_serial("wait PxCI end\r\n");
 }
 
-struct port_and_portno probe_impl_port(void)
+port_and_portno probe_impl_port(void)
 {
-    struct port_and_portno p = { .port = 0, .portno = -1 };
+    port_and_portno p = { .port = 0, .portno = -1 };
     uint32_t pi = abar->pi;
     int k = -1;
     for (int i = 0; i < 32; i++) {
@@ -430,7 +407,7 @@ int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, vo
 
 void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte, int offset)
 {
-    struct port_and_portno p = probe_impl_port();
+    port_and_portno p = probe_impl_port();
     char pool[1024 * count];
     ahci_read(p.port, p.portno, start_sector, count, pool);
     for (int i = 0; i < byte; i++) {

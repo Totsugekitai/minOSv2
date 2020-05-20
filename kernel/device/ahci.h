@@ -4,6 +4,28 @@
 #include <stdint.h>
 
 #define PORT_NUM 32
+#define SATA_SIG_ATA 0x00000101   // SATA drive
+#define SATA_SIG_ATAPI 0xEB140101 // SATAPI drive
+#define SATA_SIG_SEMB 0xC33C0101  // Enclosure management bridge
+#define SATA_SIG_PM 0x96690101    // Port multiplier
+
+#define AHCI_DEV_NULL 0
+#define AHCI_DEV_SATA 1
+#define AHCI_DEV_SEMB 2
+#define AHCI_DEV_PM 3
+#define AHCI_DEV_SATAPI 4
+
+#define HBA_PORT_IPM_ACTIVE 1
+#define HBA_PORT_DET_PRESENT 3
+
+#define ATA_DEV_BUSY 0x80
+#define ATA_DEV_DRQ 0x08
+
+#define CMD_LIST_SIZE 0x8000    // size: 0x20 * 32 * 32 = 0x8000
+#define RCVD_FIS_SIZE 0x2000    // size: 0x100 * 32     = 0x2000
+#define PRDT_ENTRY_MAX 65536
+#define PRDT_ENTRY_SIZE (4 * 4)
+#define CMD_TBL_SIZE  (0x80 + PRDT_ENTRY_SIZE * PRDT_ENTRY_MAX)
 
 /* about FIS */
 typedef enum FIS_TYPE {
@@ -224,13 +246,13 @@ typedef volatile struct tagHBA_MEM_REG {
     HBA_PORT ports[1]; // 1 ~ 32
 } HBA_MEM_REG;
 
-struct port_implemented {
+typedef struct port_implemented {
     uint32_t sata_bit;
     uint32_t atapi_bit;
     uint32_t semb_bit;
     uint32_t pm_bit;
     uint32_t no_bit;
-};
+} port_implemented;
 
 /* Reserved FIS */
 typedef volatile struct tagRCVD_FIS {
@@ -324,15 +346,16 @@ typedef struct tagCMD_PARAMS {
     uint8_t w;
 } CMD_PARAMS;
 
-struct port_and_portno {
+typedef struct port_and_portno {
     HBA_PORT *port;
     int portno;
-};
+} port_and_portno;
+
 /* functions */
 void put_hba_memory_register(void);
 void check_ahci(void);
 void ahci_init(void);
-struct port_and_portno probe_impl_port(void);
+port_and_portno probe_impl_port(void);
 int ahci_read(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, void *buf);
 void ahci_read_byte(uint64_t start_sector, uint16_t count, void *buf, int byte, int offset);
 int ahci_write(HBA_PORT *port, int portno, uint64_t start_lba, uint16_t count, uint16_t *buf);
