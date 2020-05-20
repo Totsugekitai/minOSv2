@@ -93,6 +93,7 @@ void do_child(void)
     } else {
         puts_serial("signal success\n");
     }
+    check_ext2(0, 0);
 }
 
 void do_parent(void)

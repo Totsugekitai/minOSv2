@@ -7,8 +7,41 @@
 #define BG_GROUP_DSC_TBL_LBA 3
 #define SBLOCK_LENGTH 1024
 
+// file type value
+#define BLOCK (block_size / 512)
+
+#define EXT2_FT_UNKNOWN  (0)
+#define EXT2_FT_REG_FILE (1)
+#define EXT2_FT_DIR      (2)
+#define EXT2_FT_CHRDEV   (3)
+#define EXT2_FT_BLKDEV   (4)
+#define EXT2_FT_FIFO     (5)
+#define EXT2_FT_SOCK     (6)
+#define EXT2_FT_SYMLINK  (7)
+
+// i_mode value
+#define EXT2_S_IFSOCK (0xc000)
+#define EXT2_S_IFLNK  (0xa000)
+#define EXT2_S_IFREG  (0x8000)
+#define EXT2_S_IFBLK  (0x6000)
+#define EXT2_S_IFDIR  (0x4000)
+#define EXT2_S_IFCHR  (0x2000)
+#define EXT2_S_IFIFO  (0x1000)
+#define EXT2_S_ISUID  (0x0800)
+#define EXT2_S_ISGID  (0x0400)
+#define EXT2_S_ISVTX  (0x0200)
+#define EXT2_S_IRUSR  (0x0100)
+#define EXT2_S_IWUSR  (0x0080)
+#define EXT2_S_IXUSR  (0x0040)
+#define EXT2_S_IRGRP  (0x0020)
+#define EXT2_S_IWGRP  (0x0010)
+#define EXT2_S_IXGRP  (0x0008)
+#define EXT2_S_IROTH  (0x0004)
+#define EXT2_S_IWOTH  (0x0002)
+#define EXT2_S_IXOTH  (0x0001)
+
 // superblock of ext2
-struct sblock_ext2 {
+typedef struct sblock_ext2 {
     uint32_t s_inodes_count;    // total number of inodes
     uint32_t s_blocks_count;    // total number of blocks
     uint32_t s_r_blocks_count;  // total number of blocks reserved fo the usage of the superuser
@@ -62,10 +95,10 @@ struct sblock_ext2 {
     uint32_t s_default_mount_options;   // the default mount options for this filesystem
     uint32_t s_first_meta_bg;   // the block group ID of the first meta block group
     uint64_t unused[95];
-};
+} sblock_ext2;
 
 // block group descriptor entry
-struct bg_dsc_ext2 {
+typedef struct bg_dsc_ext2 {
     uint32_t bg_block_bitmap;   // block id of the first block of the "block bitmap" for the group represented
     uint32_t bg_inode_bitmap;   // block id of the first block of the "inode bitmap" for the group represented
     uint32_t bg_inode_table;    // block id of the first block of the "inode table" for the group represented
@@ -74,10 +107,10 @@ struct bg_dsc_ext2 {
     uint16_t bg_used_dirs_count;    // the number of inodes allocated to directories for the represented group
     uint16_t bg_pad;    // padding
     uint32_t bg_reserved[3];    // reserved
-};
+} bg_dsc_ext2;
 
 // Inode structure
-struct inode_ext2 {
+typedef struct inode_ext2 {
     uint16_t i_mode; // format of the file and access rights
     uint16_t i_uid;
     uint32_t i_size; // file size in bytes
@@ -114,19 +147,19 @@ struct inode_ext2 {
       8      4    reserved
      */
     uint32_t i_osd2[3];
-};
+} inode_ext2;
 
-struct inode_table_ext2 {
-    struct inode_ext2 *head;
+typedef struct inode_table_ext2 {
+    inode_ext2 *head;
     int len;
-};
+} inode_table_ext2;
 
-struct linked_dir_entry_ext2 {
+typedef struct linked_dir_entry_ext2 {
     uint32_t inode;
     uint16_t rec_len;
     uint8_t name_len;
     uint8_t file_type;
-};
+} linked_dir_entry_ext2;
 
 void check_ext2(int argc, char **argv);
 
