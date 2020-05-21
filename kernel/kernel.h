@@ -14,6 +14,7 @@
 #include "fs/ext2.h"
 
 #include "app/app.h"
+#include "app/console.h"
 
 #include "stdcall/pipe_include.h"
 

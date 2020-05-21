@@ -357,13 +357,14 @@ tid_t fork_thread(void)
 
     //puts_serial("switch_fork() enter\n");
     switch_fork(&cur_thread->rsp, new_thread->stack_btm, cur_thread->stack_btm);
-    //puts_serial("switch_fork() end\n");
+    puts_serial("switch_fork() end\n");
     io_sti();
 
     io_cli();
     tid_t tid = get_cur_thread_tid();
     thread *t = get_thread_ptr(tid);
     if (find_ctid(t) == -1) {
+        puts_serial("child thread.\n");
         putsn_serial("cur_thread_index: ", cur_thread_index);
         putsn_serial("t_index: ", t_index);
         puts_serial("this is child thread\n");
@@ -371,6 +372,7 @@ tid_t fork_thread(void)
         //__asm__ volatile("hlt");
         return -1;
     }
+    puts_serial("parent thread.\n");
     putsn_serial("cur_thread_index: ", cur_thread_index);
     putsn_serial("t_index: ", t_index);
     putsn_serial("child_tid: ", child_tid);

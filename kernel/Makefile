@@ -24,6 +24,8 @@ OBJS = kernel.o \
 	  device/ahci.o \
 	  fs/ext2.o \
 	  app/app.o \
+	  app/console.o \
+	  app/echo.o \
 	  stdcall/pipe.o \
 
 .PHONY: clean

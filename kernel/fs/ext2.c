@@ -80,7 +80,7 @@ static inline void ext2_check_sblock(sblock_ext2 *sb)
 bg_dsc_ext2 ext2_check_bg_dsc(void)
 {
     bg_dsc_ext2 bg[32];
-    struct port_and_portno p = probe_impl_port();
+    port_and_portno p = probe_impl_port();
     ahci_read(p.port, p.portno, SBLOCK_DISK_LBA + 2, BLOCK, &bg);
     puts_serial("============ Ext2 Block Group Descriptor Table ============\n");
     for (int i = 0; i < 32; i++) {
@@ -125,7 +125,7 @@ void ext2_check_bg_dsc2(bg_dsc_ext2 *bgdsc)
 void ext2_check_inode_bitmap(uint32_t inode_bitmap_location)
 {
     char bitmap[block_size];
-    struct port_and_portno p = probe_impl_port();
+    port_and_portno p = probe_impl_port();
     ahci_read(p.port, p.portno, inode_bitmap_location * 2, BLOCK, bitmap);
     for (int i = 0; i < block_size; i++) {
         putn_serial(bitmap[i]);
@@ -285,7 +285,6 @@ inode_ext2 *create_inode_table2(void)
 
         for (uint32_t j = 0; j < inodes_per_block; j++) {
             inode_table[i + j + (inodes_per_block - 1) * i] = inodes[j];
-            //putsn_serial("inode store: ", i + j + (inodes_per_block - 1) * i);
         }
     }
     puts_serial("inode store end\n");

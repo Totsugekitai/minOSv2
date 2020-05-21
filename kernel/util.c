@@ -198,3 +198,12 @@ char *strcpy(char *s1, const char *s2)
     s1[i] = s2[i];
     return s1;
 }
+
+uint64_t strlen(const char *s)
+{
+    int count = 0;
+    while (s[count] != 0) {
+        count++;
+    }
+    return count;
+}

@@ -4,14 +4,16 @@
 #include <stdint.h>
 
 #define LINE_SIZE (80)
+#define CONS_WIDTH LINE_SIZE
+#define CONS_HEIGHT (40)
 
-struct argv_struct {
+typedef struct argv_struct {
     char argv[LINE_SIZE];
     int num;
     int len;
-};
+} argv_struct;
 
-struct console {
+typedef struct console_struct {
     struct {
         uint32_t x;
         uint32_t y;
@@ -20,6 +22,8 @@ struct console {
         uint16_t width;
         uint16_t height;
     } size;
-};
+} console_struct;
+
+void console(int argc, char *argv[]);
 
 #endif
