@@ -6,9 +6,6 @@
 typedef enum pipe_state {
                          EMPTY,
                          EXIST,
-                         FULL,
-                         SENDING,
-                         RECEIVING,
 } pipe_state;
 
 

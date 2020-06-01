@@ -188,7 +188,7 @@ static int thread_register(thread *thread)
 }
 
 
-/* スレッドの終了p
+/* スレッドの終了
  * stateをDEADにし、スケジューラに切り替える
  */
 static void thread_end(thread *t)
@@ -333,6 +333,72 @@ void put_thread_info(thread *t)
     puts_serial("======================\n");
 }
 
+void do_fork(int argc, char *argv[])
+{
+    io_cli();
+    if (argc != 1) {
+        puts_serial("do_fork: invalid argument number\n");
+        io_sti();
+        return;
+    }
+    tid_t fork_tid = hexstr2hex(argv[0]);
+    putsn_serial("fork_tid: ", fork_tid);
+
+    uint64_t *newstack = kmalloc_alignas(STACK_LENGTH, 16);
+    thread *new_thread = kmalloc_alignas(sizeof(thread), 16);
+    thread *fork_thread = get_thread_ptr(fork_tid);
+    put_thread_info(fork_thread);
+    thread_gen_for_fork(new_thread, fork_thread, newstack);
+    int t_index = thread_register(new_thread);
+    set_ctid(fork_thread, new_thread->tid);
+
+    new_thread->state = RUNNABLE;
+
+    for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
+        new_thread->stack[i] = fork_thread->stack[i];
+    }
+    int cur_index = search_index_from_tid(get_cur_thread_tid());
+    cur_thread_index = t_index;
+
+    switch_context(&threads[cur_index]->rsp, threads[t_index]->rsp);
+}
+
+tid_t fork_thread2(void)
+{
+    io_cli();
+    char tidstr[17];
+    hex2hexstr(get_cur_thread_tid(), tidstr);
+    puts_serial("tidstr: ");
+    puts_serial(tidstr);
+    puts_serial("\n");
+    char *argv[1] = { tidstr };
+    tid_t fork_tid = create_thread(do_fork, 1, argv);
+    int fork_index = search_index_from_tid(fork_tid);
+    int cur_index = search_index_from_tid(get_cur_thread_tid());
+    cur_thread_index = fork_index;
+    switch_context(&threads[cur_index]->rsp, threads[fork_index]->rsp);
+    io_sti();
+
+    tid_t tid = get_cur_thread_tid();
+    thread *t = get_thread_ptr(tid);
+    if (find_ctid(t) == -1) {
+        puts_serial("child thread.\n");
+        putsn_serial("cur_thread_index: ", cur_thread_index);
+        puts_serial("this is child thread\n");
+        //__asm__ volatile("cli");
+        //__asm__ volatile("hlt");
+        return -1;
+    }
+    puts_serial("parent thread.\n");
+    putsn_serial("cur_thread_index: ", cur_thread_index);
+
+    //__asm__ volatile("cli");
+    //__asm__ volatile("hlt");
+    tid_t ctid = find_ctid(t);
+    putsn_serial("ctid: ", ctid);
+    return ctid;
+}
+
 tid_t fork_thread(void)
 {
     tid_t child_tid = 0;
@@ -383,3 +449,4 @@ tid_t fork_thread(void)
     putsn_serial("ctid: ", ctid);
     return ctid;
 }
+

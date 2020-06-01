@@ -75,7 +75,8 @@ void init(int argc, char **argv)
     UNUSED(argc);
     UNUSED(argv);
 
-    tid_t tid = fork_thread();
+    tid_t tid = fork_thread2();
+    puts_serial("fork end\n");
     if (tid == -1) {
         console(0, 0);
     }

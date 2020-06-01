@@ -22,7 +22,6 @@ int pread(void *buf, uint64_t buflen)
     static int index = 0;
     thread *t = get_thread_ptr(get_cur_thread_tid());
     if (t->pstruct->pstate == EXIST) {
-        t->pstruct->pstate = RECEIVING;
         if (t->pstruct->datalen > buflen) {
             memcpy(buf, &t->pstruct->pipe_ptr[index], buflen);
             index += buflen;
@@ -33,21 +32,16 @@ int pread(void *buf, uint64_t buflen)
             t->pstruct->pstate = EMPTY;
         }
     }
-    if (index != 0) {
-        return 0;
-    } else {
-        return 0;
-    }
+    return index;
 }
 
 int pwrite(void *buf, uint64_t n)
 {
     thread *t = get_thread_ptr(get_cur_thread_tid());
-    if (t->pstruct->pstate != FULL) {
-        t->pstruct->pstate = SENDING;
+    if (t->pstruct->pstate == EMPTY) {
         if (n > NPIPEQUEUE) {
             memcpy(t->pstruct->pipe_ptr, buf, NPIPEQUEUE);
-            t->pstruct->pstate = FULL;
+            t->pstruct->pstate = EXIST;
             t->pstruct->datalen = NPIPEQUEUE;
             return 0;
         } else {
@@ -60,60 +54,22 @@ int pwrite(void *buf, uint64_t n)
     return 0;
 }
 
-int pwait(sid_t sem)
-{
-    //thread *t = get_thread_ptr(get_cur_thread_tid());
-    //if (t->pstruct->pstate == EMPTY || t->pstruct->pstate == SENDING) {
-        return wait(sem);
-    //} else {
-    //    return 1;
-    //}
-}
-
-int pwait_consumer(sid_t sem)
+// wait_state: waitするべきときの状態
+int pwait(sid_t sem, pipe_state wait_state)
 {
     thread *t = get_thread_ptr(get_cur_thread_tid());
-    if (t->pstruct->pstate == EMPTY || t->pstruct->pstate == SENDING) {
+    if (t->pstruct->pstate == wait_state) {
         return wait(sem);
     } else {
         return 1;
     }
 }
 
-int pwait_producer(sid_t sem)
+// sig_state: シグナルを送ってもよいときの状態
+int psignal(sid_t sem, pipe_state sig_state)
 {
     thread *t = get_thread_ptr(get_cur_thread_tid());
-    if (t->pstruct->pstate == EXIST || t->pstruct->pstate == RECEIVING) {
-        return wait(sem);
-    } else {
-        return 1;
-    }
-}
-
-int psignal(sid_t sem)
-{
-    //thread *t = get_thread_ptr(get_cur_thread_tid());
-    //if (t->pstruct->pstate == EXIST) {
-        return signal(sem);
-    //} else {
-    //    return 0;
-    //}
-}
-
-int psignal_consumer(sid_t sem)
-{
-    thread *t = get_thread_ptr(get_cur_thread_tid());
-    if (t->pstruct->pstate == EMPTY) {
-        return signal(sem);
-    } else {
-        return 0;
-    }
-}
-
-int psignal_producer(sid_t sem)
-{
-    thread *t = get_thread_ptr(get_cur_thread_tid());
-    if (t->pstruct->pstate == EXIST) {
+    if (t->pstruct->pstate == sig_state) {
         return signal(sem);
     } else {
         return 0;
@@ -123,12 +79,12 @@ int psignal_producer(sid_t sem)
 int pread_await(void *buf, uint64_t buflen)
 {
     thread *t = get_thread_ptr(get_cur_thread_tid());
-    int s = pwait(*t->sid_ptr);
+    int s = pwait(*t->sid_ptr, EMPTY);
     if (!s) {
         return -1;
     } else {
         int r = pread(buf, buflen);
-        psignal(*t->sid_ptr);
+        psignal(*t->sid_ptr, EMPTY);
         return r;
     }
 }
@@ -136,12 +92,12 @@ int pread_await(void *buf, uint64_t buflen)
 int pwrite_await(void *buf, uint64_t n)
 {
     thread *t = get_thread_ptr(get_cur_thread_tid());
-    int s = pwait(*t->sid_ptr);
+    int s = pwait(*t->sid_ptr, EXIST);
     if (!s) {
         return -1;
     } else {
         int w = pwrite(buf, n);
-        psignal(*t->sid_ptr);
+        psignal(*t->sid_ptr, EXIST);
         return w;
     }
 }

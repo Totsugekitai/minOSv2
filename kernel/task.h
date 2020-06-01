@@ -58,5 +58,6 @@ void schedule_period_init(uint64_t milli_sec);
 void thread_scheduler(void);
 void switch_context_first(tid_t tid);
 tid_t fork_thread(void);
+tid_t fork_thread2(void);
 
 #endif

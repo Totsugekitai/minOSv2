@@ -207,3 +207,26 @@ uint64_t strlen(const char *s)
     }
     return count;
 }
+
+int hexstr2hex(const char *s)
+{
+    int ans = 0;
+    for (int i = 0; s[i] != '\0'; i++) {
+        char c = s[i];
+        int tmpi = c - 0x30;
+        ans = ans * 10 + tmpi;
+    }
+    return ans;
+}
+
+void hex2hexstr(int hex, char *buf)
+{
+    int i = 0;
+    while (hex / 10 != 0) {
+        char tmpc = hex % 10;
+        buf[i] = 0x30 + tmpc;
+        i++;
+    }
+    char c = hex % 10;
+    buf[i] = 0x30 + c;
+}

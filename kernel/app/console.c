@@ -79,9 +79,9 @@ static void do_command(int argc, char *argv[])
         echo(argc, &argv[1]);
     } else {
         thread *t = get_thread_ptr(get_cur_thread_tid());
-        pwait_producer(*t->sid_ptr);
+        pwait(*t->sid_ptr, EXIST);
         pwrite("No such command.", sizeof("No such command."));
-        psignal_producer(*t->sid_ptr);
+        psignal(*t->sid_ptr, EXIST);
     }
 }
 

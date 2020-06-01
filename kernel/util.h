@@ -30,6 +30,8 @@ int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, unsigned long n);
 char *strcpy(char *s1, const char *s2);
 uint64_t strlen(const char *s);
+int hexstr2hex(const char *s);
+void hex2hexstr(int hex, char *buf);
 
 int queue_char_isempty(struct queue_char *que);
 int queue_char_isfull(struct queue_char *que);
