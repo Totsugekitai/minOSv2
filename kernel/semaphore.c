@@ -46,7 +46,11 @@ int dequeue_sem(tid_t *tid, sid_t sem)
 
 int get_semcount(sid_t sem)
 {
-    return semtable[sem].semcount;
+    if (semtable[sem].semstate == S_USED) {
+        return semtable[sem].semcount;
+    } else {
+        return -1;
+    }
 }
 
 sid_t newsem(void)

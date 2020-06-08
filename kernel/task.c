@@ -9,7 +9,7 @@
 extern uint64_t tick;
 
 thread *threads[THREAD_NUM];
-int cur_thread_index = 0;
+int g_cur_thread_index = 0;
 tid_t tid_global = 0;
 
 // for tid -> index conversion
@@ -35,13 +35,13 @@ static thread empty_thread = {
  * timer_period: 周期割り込みの周期
  * previous_interrupt: 前回の周期割り込みの時間
 */
-uint64_t timer_period = 0;
-uint64_t previous_interrupt = 0;
+uint64_t g_timer_period = 0;
+uint64_t g_previous_interrupt = 0;
 
 tid_t get_cur_thread_tid(void)
 {
     io_cli();
-    tid_t tid = tid_index_dict[cur_thread_index];
+    tid_t tid = tid_index_dict[g_cur_thread_index];
     io_sti();
     return tid;
 }
@@ -131,6 +131,7 @@ void thread_stack_init(thread *thread)
     putsp_serial("thread rip: ", thread->rip);
     putsp_serial("thread func address: ", thread->func_info.func);
     putsp_serial("thread rsp: ", thread->rsp);
+    puts_serial("@thread_stack_init stack init end\n");
 }
 
 /* スレッドの実行
@@ -221,22 +222,32 @@ static void thread_exec(thread *thread)
 /** スレッドの生成
  * thread構造体の初期化とスタックの初期化を行う
  */
-static void thread_gen_for_fork(thread *newt, thread *curt, uint64_t *stack)
+static void thread_gen_for_fork(thread *newt, thread *oldt, uint64_t *stack)
 {
     newt->stack = stack;
-    newt->stack_btm = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
-    newt->rsp = (uint64_t *)((uint64_t)stack + STACK_LENGTH);
+    newt->stack_btm = (uint64_t *)((uint64_t)newt->stack + STACK_LENGTH);
+    putsp_serial("newt->stack_btm: ", newt->stack_btm);
+    putsp_serial("oldt->stack_btm: ", oldt->stack_btm);
+    //for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
+    //    newt->stack[i] = oldt->stack[i];
+    //}
+    memcpy(newt->stack, oldt->stack, STACK_LENGTH);
+    newt->rsp = (uint64_t *)((uint64_t)newt->stack_btm - ((uint64_t)oldt->stack_btm - (uint64_t)oldt->rsp));
+    putsn_serial("stack difference: ", (uint64_t)oldt->stack_btm - (uint64_t)oldt->rsp);
+    putsp_serial("oldt->rsp: ", oldt->rsp);
+    putsp_serial("newt->rsp: ", newt->rsp);
     newt->rip = (uint64_t *)thread_exec;
-    newt->func_info.func = curt->func_info.func;
-    newt->func_info.argc = curt->func_info.argc;
-    newt->func_info.argv = curt->func_info.argv;
-    newt->sid_ptr = curt->sid_ptr;
-    newt->pstruct = curt->pstruct;
+    newt->func_info.func = oldt->func_info.func;
+    newt->func_info.argc = oldt->func_info.argc;
+    newt->func_info.argv = oldt->func_info.argv;
+    newt->sid_ptr = oldt->sid_ptr;
+    newt->pstruct = oldt->pstruct;
     memset(newt->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
 }
 
 static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, char **argv)
 {
+    putsp_serial("function: ", func);
     thread->stack = kmalloc_alignas(STACK_LENGTH, 16);
     thread->stack_btm = (uint64_t *)((uint64_t)thread->stack + STACK_LENGTH);
     thread->rsp = (uint64_t *)((uint64_t)thread->stack + STACK_LENGTH);
@@ -244,12 +255,16 @@ static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, cha
     thread->func_info.func = func;
     thread->func_info.argc = argc;
     thread->func_info.argv = argv;
+    puts_serial("@thread_gen2 stack allocate\n");
     thread->sid_ptr = kmalloc(sizeof(sid_t));
     thread->pstruct = kmalloc(sizeof(pipe_struct));
     thread->pstruct->pstate = EMPTY;
+    puts_serial("@thread_gen2 pipe allocate\n");
     memset(thread->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
 
+    putsp_serial("thread rip: ", thread->rip);
     thread_stack_init(thread);
+    puts_serial("@thread_gen2 stack init\n");
 }
 
 tid_t create_thread(void (*func)(int, char**), int argc, char **argv)
@@ -257,6 +272,7 @@ tid_t create_thread(void (*func)(int, char**), int argc, char **argv)
     io_cli();
     thread *t = kmalloc_alignas(sizeof(thread), 16);
     thread_gen2(t, func, argc, argv);
+    puts_serial("@create_thread thread_gen2 end\n");
     thread_run(t);
     io_sti();
     return t->tid;
@@ -264,7 +280,7 @@ tid_t create_thread(void (*func)(int, char**), int argc, char **argv)
 
 void schedule_period_init(uint64_t milli_sec)
 {
-    timer_period = milli_sec;
+    g_timer_period = milli_sec;
 }
 
 /** This is thread scheduler
@@ -274,12 +290,12 @@ void schedule_period_init(uint64_t milli_sec)
 void thread_scheduler(void)
 {
     io_cli();
-    int old_thread_index = cur_thread_index;
+    int old_thread_index = g_cur_thread_index;
     // update current_index
     int i = 1;
-    while (cur_thread_index == old_thread_index) {
-        if (threads[(cur_thread_index + i) % THREAD_NUM]->state == RUNNABLE) {
-            cur_thread_index = (cur_thread_index + i) % THREAD_NUM;
+    while (g_cur_thread_index == old_thread_index) {
+        if (threads[(g_cur_thread_index + i) % THREAD_NUM]->state == RUNNABLE) {
+            g_cur_thread_index = (g_cur_thread_index + i) % THREAD_NUM;
             break;
         }
         i++;
@@ -287,11 +303,11 @@ void thread_scheduler(void)
 
     // save previous thread's rip to struct thread
     putsn_serial("old_thread_index: ", old_thread_index);
-    putsn_serial("cur_thread_index: ", cur_thread_index);
+    putsn_serial("g_cur_thread_index: ", g_cur_thread_index);
     putsp_serial("old thread rsp: ", threads[old_thread_index]->rsp);
-    putsp_serial("cur thread rsp: ", threads[cur_thread_index]->rsp);
+    putsp_serial("cur thread rsp: ", threads[g_cur_thread_index]->rsp);
 
-    switch_context(&threads[old_thread_index]->rsp, threads[cur_thread_index]->rsp);
+    switch_context(&threads[old_thread_index]->rsp, threads[g_cur_thread_index]->rsp);
 }
 
 void switch_context_first(tid_t tid)
@@ -335,6 +351,7 @@ void put_thread_info(thread *t)
 
 void do_fork(int argc, char *argv[])
 {
+    puts_serial("do_fork start\n");
     io_cli();
     if (argc != 1) {
         puts_serial("do_fork: invalid argument number\n");
@@ -346,36 +363,33 @@ void do_fork(int argc, char *argv[])
 
     uint64_t *newstack = kmalloc_alignas(STACK_LENGTH, 16);
     thread *new_thread = kmalloc_alignas(sizeof(thread), 16);
-    thread *fork_thread = get_thread_ptr(fork_tid);
-    put_thread_info(fork_thread);
-    thread_gen_for_fork(new_thread, fork_thread, newstack);
-    int t_index = thread_register(new_thread);
-    set_ctid(fork_thread, new_thread->tid);
+    thread *f_thread = get_thread_ptr(fork_tid);
+    put_thread_info(f_thread);
+    thread_gen_for_fork(new_thread, f_thread, newstack);
+    thread_register(new_thread);
+    set_ctid(f_thread, new_thread->tid);
 
     new_thread->state = RUNNABLE;
-
-    for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
-        new_thread->stack[i] = fork_thread->stack[i];
-    }
-    int cur_index = search_index_from_tid(get_cur_thread_tid());
-    cur_thread_index = t_index;
-
-    switch_context(&threads[cur_index]->rsp, threads[t_index]->rsp);
 }
 
 tid_t fork_thread2(void)
 {
     io_cli();
-    char tidstr[17];
-    hex2hexstr(get_cur_thread_tid(), tidstr);
+    char tidstr[17] = {0};
+    tid_t tmptid = get_cur_thread_tid();
+    hex2hexstr(tmptid, tidstr);
+    putsn_serial("tid: ", tmptid);
     puts_serial("tidstr: ");
     puts_serial(tidstr);
     puts_serial("\n");
     char *argv[1] = { tidstr };
+    puts_serial("create thread start\n");
     tid_t fork_tid = create_thread(do_fork, 1, argv);
+    puts_serial("create thread end\n");
     int fork_index = search_index_from_tid(fork_tid);
-    int cur_index = search_index_from_tid(get_cur_thread_tid());
-    cur_thread_index = fork_index;
+    int cur_index = search_index_from_tid(tmptid);
+    g_cur_thread_index = fork_index;
+    puts_serial("fork_thread switch context start\n");
     switch_context(&threads[cur_index]->rsp, threads[fork_index]->rsp);
     io_sti();
 
@@ -383,14 +397,14 @@ tid_t fork_thread2(void)
     thread *t = get_thread_ptr(tid);
     if (find_ctid(t) == -1) {
         puts_serial("child thread.\n");
-        putsn_serial("cur_thread_index: ", cur_thread_index);
+        putsn_serial("g_cur_thread_index: ", g_cur_thread_index);
         puts_serial("this is child thread\n");
         //__asm__ volatile("cli");
         //__asm__ volatile("hlt");
         return -1;
     }
     puts_serial("parent thread.\n");
-    putsn_serial("cur_thread_index: ", cur_thread_index);
+    putsn_serial("g_cur_thread_index: ", g_cur_thread_index);
 
     //__asm__ volatile("cli");
     //__asm__ volatile("hlt");
@@ -415,7 +429,7 @@ tid_t fork_thread(void)
 
     io_cli();
     new_thread->state = RUNNABLE;
-    cur_thread_index = t_index;
+    g_cur_thread_index = t_index;
 
     for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
         new_thread->stack[i] = cur_thread->stack[i];
@@ -431,7 +445,7 @@ tid_t fork_thread(void)
     thread *t = get_thread_ptr(tid);
     if (find_ctid(t) == -1) {
         puts_serial("child thread.\n");
-        putsn_serial("cur_thread_index: ", cur_thread_index);
+        putsn_serial("g_cur_thread_index: ", g_cur_thread_index);
         putsn_serial("t_index: ", t_index);
         puts_serial("this is child thread\n");
         //__asm__ volatile("cli");
@@ -439,7 +453,7 @@ tid_t fork_thread(void)
         return -1;
     }
     puts_serial("parent thread.\n");
-    putsn_serial("cur_thread_index: ", cur_thread_index);
+    putsn_serial("g_cur_thread_index: ", g_cur_thread_index);
     putsn_serial("t_index: ", t_index);
     putsn_serial("child_tid: ", child_tid);
 

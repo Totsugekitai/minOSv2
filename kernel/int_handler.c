@@ -16,8 +16,8 @@ extern const pix_format_t blue;
  * ------------------------------------
  */
 uint64_t tick;
-extern uint64_t timer_period;
-extern uint64_t previous_interrupt;
+extern uint64_t g_timer_period;
+extern uint64_t g_previous_interrupt;
 __attribute__((interrupt))
 void timer_handler(struct intr_frame *frame)
 {
@@ -34,8 +34,8 @@ void timer_handler(struct intr_frame *frame)
      * 各種パラメータはint_handler.hで設定
      */
     io_sti();
-    if (tick > previous_interrupt + timer_period && tick > 90) {
-        previous_interrupt = tick;
+    if (tick > g_previous_interrupt + g_timer_period && tick > 90) {
+        g_previous_interrupt = tick;
         //puts_serial("scheduler\r\n");
         thread_scheduler();
     }

@@ -80,7 +80,8 @@ static void do_command(int argc, char *argv[])
     } else {
         thread *t = get_thread_ptr(get_cur_thread_tid());
         pwait(*t->sid_ptr, EXIST);
-        pwrite("No such command.", sizeof("No such command."));
+        char *str = "No such command.";
+        pwrite(str, sizeof(str));
         psignal(*t->sid_ptr, EXIST);
     }
 }
@@ -114,7 +115,7 @@ static void execute_command(argv_struct *argv_s, char output_text[])
     }
 
     puts_serial("fork console\n");
-    tid_t tid = fork_thread();
+    tid_t tid = fork_thread2();
     puts_serial("fork end\n");
     if (tid == -1) {
         puts_serial("child\n");

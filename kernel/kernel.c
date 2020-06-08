@@ -41,35 +41,6 @@ void entry_point(bootinfo_t *binfo)
     halt();
 }
 
-//void do_child(void)
-//{
-//    puts_serial("func do_child()\n");
-//    thread *t = get_thread_ptr(get_cur_thread_tid());
-//    pwrite("deadbeeeeeeeeeeeeeeeeeeeeeeeeef", 32);
-//    int success = signalp(*t->sid_ptr);
-//    if (!success) {
-//        puts_serial("signal failed\n");
-//    } else {
-//        puts_serial("signal success\n");
-//    }
-//    check_ext2(0, 0);
-//}
-//
-//void do_parent(void)
-//{
-//    puts_serial("func do_parent()\n");
-//    thread *t = get_thread_ptr(get_cur_thread_tid());
-//    int success = waitp(*t->sid_ptr);
-//    if (!success) {
-//        puts_serial("wait failed\n");
-//    } else {
-//        char buf[32];
-//        pread(buf, 32);
-//        puts_serial(buf);
-//        puts_serial("receive OK\n");
-//    }
-//}
-
 void init(int argc, char **argv)
 {
     UNUSED(argc);
@@ -80,13 +51,5 @@ void init(int argc, char **argv)
     if (tid == -1) {
         console(0, 0);
     }
-    //create_thread(task_shikaku_aka, 0, 0);
-    //create_thread(check_ext2, 0, 0);
-    //create_thread(task_shikaku_ao, 0, 0);
-    //create_thread(task_shikaku_aka, 0, 0);
-    //create_thread(check_ext2, 0, 0);
-    //create_thread(jikken, 0, 0);
-    //create_thread(forloop, 0, 0);
-    //create_thread(task_shikaku_ao, 0, 0);
     halt();
 }
