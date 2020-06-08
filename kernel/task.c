@@ -126,7 +126,7 @@ void threads_init(void)
 void thread_stack_init(thread *thread)
 {
     putsp_serial("thread address: ", thread);
-    thread->rsp = init_stack(thread->rsp, thread->rip, thread);
+    thread->rsp = init_stack(thread->rsp - 1, thread->rip, thread);
     putsn_serial("thread stack bottom: ", (uint64_t)thread->stack_btm);
     putsp_serial("thread rip: ", thread->rip);
     putsp_serial("thread func address: ", thread->func_info.func);

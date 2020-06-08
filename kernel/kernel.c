@@ -49,7 +49,11 @@ void init(int argc, char **argv)
     tid_t tid = fork_thread2();
     puts_serial("fork end\n");
     if (tid == -1) {
-        console(0, 0);
+        tid = fork_thread();
+        if (tid == -1) {
+            console(0, 0);
+        }
+        puts_serial("child parent\n");
     }
     halt();
 }
