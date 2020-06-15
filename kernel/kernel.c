@@ -55,5 +55,4 @@ void init(int argc, char **argv)
         }
         puts_serial("child parent\n");
     }
-    halt();
 }

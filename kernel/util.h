@@ -22,6 +22,7 @@ extern uint8_t io_in8(uint16_t port);
 extern void io_out8(uint16_t port, uint8_t val);
 extern uint32_t io_in32(uint16_t port);
 extern void io_out32(uint16_t port, uint32_t val);
+extern uint64_t get_rsp(void);
 uint64_t mypow(uint64_t num, uint64_t p);
 void *memset(void *buf, int ch, unsigned long n);
 void *memcpy(void *buf1, const void *buf2, unsigned long n);

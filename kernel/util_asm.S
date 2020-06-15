@@ -27,3 +27,7 @@ io_out32:
     out     dx,eax
     ret
 
+.global     get_rsp
+get_rsp:
+    mov     rax,rsp
+    ret

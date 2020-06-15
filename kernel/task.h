@@ -9,7 +9,7 @@ typedef int tid_t;
 
 #define THREAD_NUM      (40)   // Max threads number
 #define NTHREAD_CHILD   (10)
-#define STACK_LENGTH    (0x1000)
+#define STACK_LENGTH    (0x2000)
 
 typedef struct thread_func {
     void (*func)(int, char**);

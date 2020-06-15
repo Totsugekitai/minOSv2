@@ -125,12 +125,15 @@ void threads_init(void)
 
 void thread_stack_init(thread *thread)
 {
+    puts_serial("@thread_stack_init stack init start\n");
+    putsn_serial("now rsp: ", get_rsp());
     putsp_serial("thread address: ", thread);
-    thread->rsp = init_stack(thread->rsp - 1, thread->rip, thread);
+    thread->rsp = init_stack(thread->stack_btm, thread->rip, thread);
     putsn_serial("thread stack bottom: ", (uint64_t)thread->stack_btm);
     putsp_serial("thread rip: ", thread->rip);
     putsp_serial("thread func address: ", thread->func_info.func);
     putsp_serial("thread rsp: ", thread->rsp);
+    putsn_serial("now rsp: ", get_rsp());
     puts_serial("@thread_stack_init stack init end\n");
 }
 
@@ -200,8 +203,10 @@ static void thread_end(thread *t)
     clear_ctid(parent_t, tid);
     tid_index_dict[t->index] = -1;
     if (get_semcount(*t->sid_ptr) == 0) {
+        puts_serial("delsem start\n");
         delete_sem(*t->sid_ptr);
-        kfree(t->pstruct->pipe_ptr);
+        //kfree(t->pstruct->pipe_ptr);   /// ここっぽい
+        puts_serial("delsem end\n");
         kfree(t->pstruct);
     }
     kfree(t->sid_ptr);
@@ -225,15 +230,14 @@ static void thread_exec(thread *thread)
 static void thread_gen_for_fork(thread *newt, thread *oldt, uint64_t *stack)
 {
     newt->stack = stack;
-    newt->stack_btm = (uint64_t *)((uint64_t)newt->stack + STACK_LENGTH);
+    newt->stack_btm = (uint64_t *)((uint64_t)newt->stack + STACK_LENGTH) - 2;
     putsp_serial("newt->stack_btm: ", newt->stack_btm);
     putsp_serial("oldt->stack_btm: ", oldt->stack_btm);
-    //for (uint64_t i = 0; i < (STACK_LENGTH / sizeof(uint64_t)); i++) {
-    //    newt->stack[i] = oldt->stack[i];
-    //}
+
     memcpy(newt->stack, oldt->stack, STACK_LENGTH);
-    newt->rsp = (uint64_t *)((uint64_t)newt->stack_btm - ((uint64_t)oldt->stack_btm - (uint64_t)oldt->rsp));
-    putsn_serial("stack difference: ", (uint64_t)oldt->stack_btm - (uint64_t)oldt->rsp);
+    uint64_t diff_btm_rsp = (uint64_t)oldt->stack_btm - (uint64_t)oldt->rsp;
+    newt->rsp = (uint64_t *)((uint64_t)newt->stack_btm - diff_btm_rsp);
+    putsn_serial("stack difference: ", diff_btm_rsp);
     putsp_serial("oldt->rsp: ", oldt->rsp);
     putsp_serial("newt->rsp: ", newt->rsp);
     newt->rip = (uint64_t *)thread_exec;
@@ -249,8 +253,9 @@ static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, cha
 {
     putsp_serial("function: ", func);
     thread->stack = kmalloc_alignas(STACK_LENGTH, 16);
-    thread->stack_btm = (uint64_t *)((uint64_t)thread->stack + STACK_LENGTH);
-    thread->rsp = (uint64_t *)((uint64_t)thread->stack + STACK_LENGTH);
+
+    thread->stack_btm = (uint64_t *)((uint64_t)thread->stack + STACK_LENGTH) - 2;
+    thread->rsp = thread->stack_btm;
     thread->rip = (uint64_t *)thread_exec;
     thread->func_info.func = func;
     thread->func_info.argc = argc;
@@ -263,8 +268,16 @@ static void thread_gen2(thread *thread, void (*func)(int, char**), int argc, cha
     memset(thread->ctid, -1, sizeof(tid_t) * NTHREAD_CHILD);
 
     putsp_serial("thread rip: ", thread->rip);
-    thread_stack_init(thread);
-    puts_serial("@thread_gen2 stack init\n");
+    putsp_serial("thread address: ", thread);
+    putsp_serial("thread stack top: ", thread->stack);
+    putsp_serial("thread stack bottom: ", thread->stack_btm);
+    putsp_serial("thread rip: ", thread->rip);
+    putsp_serial("thread func address: ", thread->func_info.func);
+    putsp_serial("thread rsp: ", thread->rsp);
+    putsn_serial("now rsp: ", get_rsp());
+    thread->rsp = init_stack(thread->stack_btm, thread->rip, thread);
+
+    puts_serial("@thread_gen2 thread gen end\n");
 }
 
 tid_t create_thread(void (*func)(int, char**), int argc, char **argv)
@@ -289,10 +302,12 @@ void schedule_period_init(uint64_t milli_sec)
  */
 void thread_scheduler(void)
 {
+    puts_serial("thread scheduler\n");
     io_cli();
     int old_thread_index = g_cur_thread_index;
     // update current_index
-    int i = 1;
+    //static uint64_t i = 1;
+    uint64_t i = 1;
     while (g_cur_thread_index == old_thread_index) {
         if (threads[(g_cur_thread_index + i) % THREAD_NUM]->state == RUNNABLE) {
             g_cur_thread_index = (g_cur_thread_index + i) % THREAD_NUM;
@@ -370,6 +385,8 @@ void do_fork(int argc, char *argv[])
     set_ctid(f_thread, new_thread->tid);
 
     new_thread->state = RUNNABLE;
+    puts_serial("do_fork end\n");
+    putsn_serial("now rsp: ", get_rsp());
 }
 
 tid_t fork_thread2(void)
