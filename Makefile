@@ -3,12 +3,13 @@
 
 #QEMU = /home/totsugekitai/workspace/mywork/qemu/build/x86_64-softmmu/qemu-system-x86_64
 QEMU = qemu-system-x86_64
+EDK_WORKSPACE = $(CURDIR)/../edk2
 
 default:
 
 boot:
 > make -C boot/
-> cp $(WORKSPACE)/Build/MinLoaderPkgX64/DEBUG_GCC5/X64/MinLoader.efi ./fs/EFI/BOOT/BOOTX64.EFI
+> cp $(EDK_WORKSPACE)/Build/MinLoaderPkgX64/DEBUG_GCC5/X64/MinLoader.efi ./fs/EFI/BOOT/BOOTX64.EFI
 
 kernel:
 > make -C kernel/
