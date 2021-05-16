@@ -21,6 +21,14 @@ x86_64 アーキテクチャで UEFI 対応のシンプルな OS です。
 
 #### EDK2をクローンする
 
+以下のようなディレクトリ構造となるようにEDK2をクローンする。
+```
+.
+├── edk2
+└── minOSv2
+```
+git clone
+
 ```
 $ git clone https://github.com/tianocore/edk2.git
 ```
@@ -36,9 +44,7 @@ $ make -C BaseTools/Source/C
 
 で必要なものをビルドする。
 
-次に`source edksetup.sh` を叩き、環境変数を設定する。
-以降はこの環境変数を読み込んだシェル上で操作を行う。
-
+<!--
 #### `target.txt` を編集する
 
 `Conf/target.txt` が生成されていると思うので、それを以下のように編集する。
@@ -50,7 +56,7 @@ ACTIVE_PLATFORM       = MinLoaderPkg/MinLoaderPkg.dsc
 TARGET_ARCH           = X64
 # -- snip --
 TOOL_CHAIN_TAG        = GCC5
-```
+``` -->
 
 #### ブートローダの `make`
 
